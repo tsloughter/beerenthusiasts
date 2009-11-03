@@ -1,0 +1,12 @@
+-- REQUIRED --
+Faxien
+Sinan
+Erlang
+Yaws
+Nitrogen
+
+-- INSTALLING --
+$ ./deploy
+
+-- RUNNING --
+$ beerenthusiasts
