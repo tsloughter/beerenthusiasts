@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo Deploying Beer Enthusiasts
+
+/usr/local/erlware/bin/sinan dist
+sudo /usr/local/erlware/bin/faxien ir _build/development/tar/beerenthusiasts-0.1.0.0.tar.gz
+
+sudo rm -fr /opt/beerenthusiasts/wwwroot
+sudo cp -R lib/beerenthusiasts_web/wwwroot /opt/beerenthusiasts
+sudo ln -sf /opt/erlang-libs/nitrogen/www /opt/beerenthusiasts/wwwroot/nitrogen
+
+sudo chmod +x /usr/local/erlware/lib/ssl-3.10.3/priv/bin/ssl_esock
