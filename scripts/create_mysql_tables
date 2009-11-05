@@ -1,0 +1,27 @@
+
+use beerenthusiasts;
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL auto_increment,
+  `username` char(15) UNIQUE NOT NULL,
+  INDEX (`username`),
+  `fullname` char(255) NOT NULL,
+  `email` char(255) UNIQUE NOT NULL,
+  INDEX (`email`),
+  `password` char(41) NOT NULL,
+  `date_joined` date NOT NULL,
+  `last_logged_in` datetime NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=latin1;
+ 
+CREATE TABLE `friends` (
+  `user_id` int(11) NOT NULL default '0',
+  `friend_id` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`user_id`,`friend_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `pending_friends` (
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `pending_friend_id` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`pending_friend_id`,`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
