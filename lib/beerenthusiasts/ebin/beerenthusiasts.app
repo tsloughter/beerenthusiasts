@@ -7,7 +7,7 @@
               beerenthusiasts_sup,
               beerenthusiasts]},
    {registered,[beerenthusiasts_sup]},
-   {applications, [kernel, stdlib]},
+   {applications, [kernel, stdlib, beerenthusiasts_db]},
    {mod, {beerenthusiasts_app,[]}},
    {start_phases, []}]}.
 
