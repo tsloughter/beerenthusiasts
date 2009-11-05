@@ -9,10 +9,12 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/0, login/2]).
 
 %% Supervisor callbacks
 -export([init/1]).
+
+-include("be_config.hrl").
 
 -define(SERVER, ?MODULE).
 
@@ -33,6 +35,20 @@ start_link() ->
 %%%===================================================================
 %%% Supervisor callbacks
 %%%===================================================================
+login(UserName, Password) ->
+    case db_interface:validate_user(UserName, Password) of
+        {ok, valid} ->
+            case supervisor:start_child(?SERVER, {{user_sup, UserName}, {be_user_sup, start_link, []}, transient, 2000, supervisor, [be_user_sup]}) of
+                {ok, Pid} ->
+                    user_server:start(Pid, UserName);
+                _ ->
+                    ?ERROR_MSG("Unable to start ~p supervisor", [UserName]),
+                    {error, "Unable to login"}
+            end;
+        {error, Reason} ->
+            ?INFO_MSG("Incorrect login for ~p", [UserName]),
+            {error, Reason}
+    end.
 
 %%--------------------------------------------------------------------
 %% @private

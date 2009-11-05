@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
+-export([start/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -32,11 +32,11 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(UserName) ->
-    gen_server:start_link(?MODULE, [], [UserName]).
+start(Super, UserName) ->
+    supervisor:start_child (Super, [UserName]).
 
 %%%===================================================================
-be%%% gen_server callbacks
+%%% gen_server callbacks
 %%%===================================================================
 
 %%--------------------------------------------------------------------
