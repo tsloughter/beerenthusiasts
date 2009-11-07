@@ -1,3 +1,5 @@
+% From http://code.google.com/p/erls3/
+
 -module(erls3).
 
 -behaviour(gen_server).
@@ -15,6 +17,9 @@
 -export([put_file/1, 
          put_file/2,
          put_file/3,
+         put_binary_file/2, 
+         put_binary_file/3,
+         put_binary_file/4,
          check_acl/1,
          get_file_size/1,
          simple_request/3,
@@ -36,12 +41,12 @@
          make_link/2]).
 
 -include_lib("kernel/include/file.hrl").
+-include("s3_config.hrl").
 
--define(ACCESS_KEY, "ACCESS_KEY").
--define(SECRET_KEY, "SECRET_KEY").
+-define(ACCESS_KEY, "0FD12FH1JNXJ0VTDK2R2").
 -define(AWS_S3_HOST, "s3.amazonaws.com").
 -define(TIMEOUT, infinity).
--define(CHUNK_SIZE, 1024 * 5).
+-define(CHUNK_SIZE, 5120).
 
 -record(state, {bucket = none}).
 -include_lib("xmerl/include/xmerl.hrl").
@@ -56,6 +61,15 @@ put_file(File_name) ->
     Remote_file = filename:basename(File_name),
     Acl = "",
     gen_server:call({global, ?MODULE}, {put_file, File_name, Remote_file, Acl}, ?TIMEOUT).
+put_binary_file(File, File_name, Remote_file, Acl) ->
+    gen_server:call({global, ?MODULE}, {put_binary_file, File, File_name, Remote_file, Acl}, ?TIMEOUT).
+put_binary_file(File, File_name, Remote_file) ->
+    Acl = "",
+    gen_server:call({global, ?MODULE}, {put_binary_file, File, File_name, Remote_file, Acl}, ?TIMEOUT).
+put_binary_file(File, File_name) ->
+    Remote_file = filename:basename(File_name),
+    Acl = "",
+    gen_server:call({global, ?MODULE}, {put_binary_file, File, File_name, Remote_file, Acl}, ?TIMEOUT).
 get_file(Remote_file, Local_file) ->
     gen_server:call({global, ?MODULE}, {get_file, Remote_file, Local_file}, ?TIMEOUT).
 list_buckets() ->
@@ -93,6 +107,24 @@ init([Bucket]) ->
 handle_call({put_file, Local_file, Remote_file, Acl_temp}, From, State) ->
     Acl = check_acl(Acl_temp),
     {File_size, File} = get_file_size(Local_file),
+    Date = get_date(),
+    Mime = "image/jpeg",
+    To_sign = lists:flatten(["PUT\n\n", Mime, "\n", Date, "\nx-amz-acl:", Acl, "\n/", State#state.bucket,"/", Remote_file]),
+    Sig = sign(To_sign),
+    Payload = lists:flatten([
+                             "PUT /", Remote_file, " HTTP/1.1\r\n",
+                             "Content-type: ", Mime, "\r\n",
+                             "Content-length: ", integer_to_list(File_size), "\r\n",
+                             "Host: ", State#state.bucket, ".", ?AWS_S3_HOST, "\r\n",
+                             "Date: ", Date, "\r\n",
+                             "x-amz-acl: ", Acl, "\r\n",
+                             "Authorization: ", auth_header(Sig), "\r\n\r\n"
+                            ]),
+    spawn(fun() -> send_headers(Payload, File, From) end),
+    {reply, ok, State};
+handle_call({put_binary_file, File, Local_file, Remote_file, Acl_temp}, From, State) ->
+    Acl = check_acl(Acl_temp),
+    File_size = size(File),
     Date = get_date(),
     Mime = "image/jpeg",
     To_sign = lists:flatten(["PUT\n\n", Mime, "\n", Date, "\nx-amz-acl:", Acl, "\n/", State#state.bucket,"/", Remote_file]),
@@ -269,7 +301,12 @@ get_file_size(File_name) ->
 send_headers(Headers, File, From) ->
     {ok, Socket} = gen_tcp:connect(?AWS_S3_HOST, 80, [binary, {active, false}, {packet, 0}]),
     gen_tcp:send(Socket, list_to_binary(Headers)),
-    send_data(Socket, File, From).
+    case is_binary(File) of
+        true ->
+            send_binary(Socket, File, From);
+        false ->
+            send_data(Socket, File, From)
+    end.
 send_data(Socket, File, Global_from) ->
     {From, _} = Global_from,
     case file:read(File, ?CHUNK_SIZE) of
@@ -283,6 +320,28 @@ send_data(Socket, File, Global_from) ->
             gen_tcp:close(Socket),
             From ! send_complete
 	end.
+
+send_binary(Socket, File, Global_from) ->
+    {From, _} = Global_from,
+    Size = size(File),
+    if
+        Size < ?CHUNK_SIZE ->
+            Data = File,
+            Rest = <<>>;
+        true ->
+            <<Data:?CHUNK_SIZE/binary, Rest/binary>> = File
+    end,
+    Begin = erlang:now(),
+    gen_tcp:send(Socket, Data),
+    End = erlang:now(),
+    From ! {data_sent, Size, timer:now_diff(End, Begin)},
+    case Rest of
+        <<>> ->
+            gen_tcp:close(Socket),
+            From ! send_complete;
+        _ ->
+            send_binary(Socket, Rest, Global_from)
+    end.
 
 write_to_file(Socket, File, Global_from, Total_size, Current_size) when Current_size < Total_size ->
     {From, _} = Global_from,

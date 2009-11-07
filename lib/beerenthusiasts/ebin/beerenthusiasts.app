@@ -10,8 +10,9 @@
               be_user_sup,
               be_user_server,
 
-              be_recipes_utils]},
-   {registered,[beerenthusiasts_sup]},
+              be_recipes_utils,
+              erls3]},
+   {registered,[beerenthusiasts_sup, erls3]},
    {applications, [kernel, stdlib, beerenthusiasts_db, couchbeam]},
    {mod, {beerenthusiasts_app,[]}},
    {start_phases, []}]}.

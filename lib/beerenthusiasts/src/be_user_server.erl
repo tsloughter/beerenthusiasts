@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start/2]).
+-export([start/2, upload_profile_image/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -19,7 +19,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {username, connection, database}).
+-record(state, {username, connection, database, email_address, profile_image}).
 
 %%%===================================================================
 %%% API
@@ -38,6 +38,8 @@ start(Super, UserName) ->
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
+upload_profile_image(Pid, LocalFileName) ->
+    gen_server:call(Pid, {upload_profile_image, LocalFileName}).
 
 %%--------------------------------------------------------------------
 %% @private
@@ -53,8 +55,11 @@ start(Super, UserName) ->
 init([UserName]) ->
     Connection = couchbeam_server:start_connection_link(),   
     Database = couchbeam_db:create(Connection, UserName),
+
+    {ok, EmailAddress} = db_interface:get_email_address(UserName),
+    ProfileImage = digest2str(erlang:md5(wf:clean_lower(EmailAddress))),
     
-    {ok, #state{username=UserName, connection=Connection, database=Database}}.
+    {ok, #state{username=UserName, connection=Connection, database=Database, email_address=EmailAddress, profile_image=ProfileImage}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -70,9 +75,9 @@ init([UserName]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(_Request, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State}.
+handle_call({upload_profile_image, LocalFileName}, _From, State) ->
+    erls3:put_file(LocalFileName, State#state.profile_image, "public-read"),
+    {reply, ok, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -128,3 +133,10 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+digest2str(Digest) ->
+    [[nibble2hex(X bsr 4), nibble2hex(X band 15)] ||
+    X <- binary_to_list(Digest)].
+
+-define(IN(X,Min,Max), X >= Min, X =< Max).
+nibble2hex(X) when ?IN(X, 0, 9)   -> X + $0;
+nibble2hex(X) when ?IN(X, 10, 15) -> X - 10 + $a.
