@@ -9,6 +9,7 @@
               
               be_user_sup,
               be_user_server,
+              be_user_utils_server,
 
               be_recipes_utils,
               erls3]},

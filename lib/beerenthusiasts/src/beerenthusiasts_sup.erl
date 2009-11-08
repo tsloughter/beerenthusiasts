@@ -40,7 +40,7 @@ login(UserName, Password) ->
         {ok, valid} ->
             case supervisor:start_child(?SERVER, {{user_sup, UserName}, {be_user_sup, start_link, []}, transient, 2000, supervisor, [be_user_sup]}) of
                 {ok, Pid} ->
-                    user_server:start(Pid, UserName);
+                    be_user_server:start(Pid, UserName);
                 _ ->
                     ?ERROR_MSG("Unable to start ~p supervisor", [UserName]),
                     {error, "Unable to login"}
@@ -74,10 +74,12 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
  
-    AChild = {erls3, {erls3, start_link, ["profiles.beerenthusiasts.org"]},
-              Restart, Shutdown, Type, [erls3]},
+    Children = [{erls3, {erls3, start_link, ["profiles.beerenthusiasts.org"]},
+                 Restart, Shutdown, Type, [erls3]},
+                {be_user_utils_server, {be_user_utils_server, start_link, []},
+                 Restart, Shutdown, Type, [be_user_utils_server]}],
 
-    {ok, {SupFlags, [AChild]}}.
+    {ok, {SupFlags, Children}}.
 
 %%%===================================================================
 %%% Internal functions

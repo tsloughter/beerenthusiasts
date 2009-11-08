@@ -4,15 +4,14 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created :  5 Nov 2009 by Tristan <tristan@kfgyeo>
+%%% Created :  8 Nov 2009 by Tristan <tristan@kfgyeo>
 %%%-------------------------------------------------------------------
--module(be_user_server).
+-module(be_user_utils_server).
 
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, start/2, upload_profile_image/2, update_profile/2, logout/1,
-         update_profile/3, get_profile/1, get_profile_image_url/1]).
+-export([start_link/0, register_user/4]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -20,9 +19,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {username, couch_connection, couch_database,
-                email_address, profile_image_name, profile_image_url,
-                profile}).
+-record(state, {couch_connection, couch_database}).
 
 %%%===================================================================
 %%% API
@@ -35,34 +32,14 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(UserName) ->
-    gen_server:start_link(?MODULE, [UserName], []).
-
-start(Super, UserName) ->
-    supervisor:start_child (Super, [UserName]).
+start_link() ->
+    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
-upload_profile_image(Pid, LocalFileName) ->
-    gen_server:call(Pid, {upload_profile_image, LocalFileName}).
-
-update_profile(Pid, KeyValue) when is_list(KeyValue) ->
-    gen_server:call(Pid, {update_profile, KeyValue}).
-
-update_profile(Pid, Key, Value) when is_list(Key), is_list(Value) ->
-    update_profile(Pid, list_to_binary(Key), list_to_binary(Value));
-update_profile(Pid, Key, Value) when is_binary(Key), is_binary(Value) ->
-    gen_server:call(Pid, {update_profile, Key, Value}).
-
-get_profile(Pid) ->
-    gen_server:call(Pid, get_profile).
-
-get_profile_image_url(Pid) ->
-    gen_server:call(Pid, get_profile_image_url).
-
-logout(Pid) ->
-    gen_server:call(Pid, logout).
+register_user(UserName, FullName, EmailAddress, Password) ->
+    gen_server:call(?SERVER, {register_user, UserName, FullName, EmailAddress, Password}).
 
 %%--------------------------------------------------------------------
 %% @private
@@ -75,16 +52,11 @@ logout(Pid) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([UserName]) ->
+init([]) ->
     Connection = couchbeam_server:start_connection_link(),   
     Database = couchbeam_db:create(Connection, "profiles"),
-    
-    {ok, EmailAddress} = db_interface:get_email_address(UserName),
-    ProfileImageName = digest2str(erlang:md5(wf:clean_lower(EmailAddress))),
 
-    Profile = couchbeam_db:open_doc(Database, EmailAddress),
-    
-    {ok, #state{username=UserName, couch_connection=Connection, couch_database=Database, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url="http://profiles.beerenthusiasts.org.s3.amazonaws.com/"++ProfileImageName, profile=Profile}}.
+    {ok, #state{couch_connection=Connection, couch_database=Database}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -100,23 +72,14 @@ init([UserName]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call({upload_profile_image, LocalFileName}, _From, State) ->
-    erls3:put_file(LocalFileName, State#state.profile_image_name, "public-read"),
-    {reply, ok, State};
-handle_call({update_profile, KeyValue}, _From, State) ->
-    UpdatedProfile = couchbeam_doc:extend(KeyValue, State#state.profile),
-    couchbeam_db:save_doc(State#state.couch_database, UpdatedProfile),
-    {reply, ok, State#state{profile=UpdatedProfile}};
-handle_call({update_profile, Key, Value}, _From, State) ->
-    UpdatedProfile = couchbeam_doc:extend(Key, Value, State#state.profile),
-    couchbeam_db:save_doc(State#state.couch_database, UpdatedProfile),
-    {reply, ok, State#state{profile=UpdatedProfile}};
-handle_call(get_profile, _From, State) ->
-    {reply, {ok, State#state.profile}, State};
-handle_call(get_profile_image_url, _From, State) ->
-    {reply, {ok, State#state.profile_image_url}, State};
-handle_call(logout, _From, State) ->
-    {stop, logout, State}.
+handle_call({register_user, UserName, FullName, EmailAddress, Password}, _From, State) ->
+    Profile = {[{<<"_id">>, list_to_binary(EmailAddress)},
+                {<<"username">>, list_to_binary(UserName)}]},
+    couchbeam_db:save_doc(State#state.couch_database, Profile),
+    
+    db_interface:add_user (UserName, FullName, EmailAddress, Password),
+    
+    {reply, ok, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -173,10 +136,3 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-digest2str(Digest) ->
-    [[nibble2hex(X bsr 4), nibble2hex(X band 15)] ||
-        X <- binary_to_list(Digest)].
-
--define(IN(X,Min,Max), X >= Min, X =< Max).
-nibble2hex(X) when ?IN(X, 0, 9)   -> X + $0;
-nibble2hex(X) when ?IN(X, 10, 15) -> X - 10 + $a.
