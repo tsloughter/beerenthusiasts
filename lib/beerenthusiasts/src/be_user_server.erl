@@ -18,6 +18,8 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
+-include("be_config.hrl").
+
 -define(SERVER, ?MODULE). 
 
 -record(state, {username, couch_connection, couch_database,
@@ -84,7 +86,7 @@ init([UserName]) ->
 
     Profile = couchbeam_db:open_doc(Database, EmailAddress),
     
-    {ok, #state{username=UserName, couch_connection=Connection, couch_database=Database, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url="http://profiles.beerenthusiasts.org.s3.amazonaws.com/"++ProfileImageName, profile=Profile}}.
+    {ok, #state{username=UserName, couch_connection=Connection, couch_database=Database, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url=?PROFILE_IMAGE_URL++ProfileImageName, profile=Profile}}.
 
 %%--------------------------------------------------------------------
 %% @private

@@ -7,4 +7,6 @@
 -define(INFO_MSG(Format, Args),
         error_logger:info_msg ("I(~p:~p:~p): "++Format++"~n", [self(),?MODULE,?LINE]++Args)).
 
+-define(PROFILE_IMAGE_URL, "http://profiles.beerenthusiasts.org.s3.amazonaws.com/").
+
 -endif.
