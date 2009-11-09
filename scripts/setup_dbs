@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo Setting up MySQL databases..
+
+mysql -u root -ptemp4now < create_mysql_db_and_user
+mysql -u beerenthusiasts -ptemp4now < create_mysql_tables

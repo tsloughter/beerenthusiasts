@@ -1,20 +1,18 @@
-%%%----------------------------------------------------------------
-%%% @author  Tristan Sloughter <tristan@beerenthusiasts.org>
+%%----------------------------------------------------------------
+%%% @author  Tristan Sloughter <tristan@defyned.com>
 %%% @doc
 %%% @end
-%%% @copyright 2009 Tristan Sloughter
+%%% @copyright 2009 defyned
 %%%----------------------------------------------------------------
--module(beerenthusiasts_sup).
+-module(beerenthusiasts_db_sup).
 
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, login/2]).
+-export([start_link/0]).
 
 %% Supervisor callbacks
 -export([init/1]).
-
--include("be_config.hrl").
 
 -define(SERVER, ?MODULE).
 
@@ -35,20 +33,6 @@ start_link() ->
 %%%===================================================================
 %%% Supervisor callbacks
 %%%===================================================================
-login(UserName, Password) ->
-    case db_interface:validate_user(UserName, Password) of
-        {ok, valid} ->
-            case supervisor:start_child(?SERVER, {{user_sup, UserName}, {be_user_sup, start_link, []}, transient, 2000, supervisor, [be_user_sup]}) of
-                {ok, Pid} ->
-                    be_user_server:start(Pid, UserName);
-                _ ->
-                    ?ERROR_MSG("Unable to start ~p supervisor", [UserName]),
-                    {error, "Unable to login"}
-            end;
-        {error, Reason} ->
-            ?INFO_MSG("Incorrect login for ~p", [UserName]),
-            {error, Reason}
-    end.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -73,13 +57,9 @@ init([]) ->
     Restart = permanent,
     Shutdown = 2000,
     Type = worker,
- 
-    Children = [{erls3, {erls3, start_link, ["profiles.beerenthusiasts.org"]},
-                 Restart, Shutdown, Type, [erls3]},
-                {be_user_utils_server, {be_user_utils_server, start_link, []},
-                 Restart, Shutdown, Type, [be_user_utils_server]}],
 
-    {ok, {SupFlags, Children}}.
+    {ok, {SupFlags, [{be_db_connection_server, {be_db_connection_server, start_link, []},
+                      Restart, Shutdown, Type, [be_db_connection_server]}]}}.
 
 %%%===================================================================
 %%% Internal functions

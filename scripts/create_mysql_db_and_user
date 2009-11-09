@@ -1,0 +1,4 @@
+create database beerenthusiasts;
+
+CREATE USER 'beerenthusiasts'@'localhost' IDENTIFIED BY 'temp4now';
+GRANT ALL PRIVILEGES ON beerenthusiasts.* TO 'beerenthusiasts'@'localhost' WITH GRANT OPTION;
