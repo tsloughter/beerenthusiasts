@@ -13,8 +13,10 @@
 %% API
 -export([start_link/1, start/2, upload_profile_image/2, update_profile/2, logout/1,
          update_profile/3, get_profile/1, get_profile_image_url/1, add_to_queue/2,
-         add_to_favorites/2, add_rating/3, get_ratings/1, get_favorites/1, get_queue/1,
-         get_comments/1]).
+         add_to_favorites/2, add_rating/3, get_brews/2, get_brews/4,
+         get_ratings/2,  get_ratings/4,
+         get_favorites/2, get_favorites/4, get_queue/2, get_queue/4,
+         get_comments/2, get_comments/4]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -26,7 +28,7 @@
 
 -record(state, {username, couch_connection, profiles_database, recipes_database,
                 user_id, email_address, profile_image_name, profile_image_url,
-                profile}).
+                profile, comments_database}).
 
 %%%===================================================================
 %%% API
@@ -65,17 +67,35 @@ get_profile(Pid) ->
 get_profile_image_url(Pid) ->
     gen_server:call(Pid, get_profile_image_url).
 
-get_comments(Pid) ->
-    gen_server:call(Pid, get_comments).
+get_comments(Pid, Rows) ->
+    gen_server:call(Pid, {get_comments, Rows}).
 
-get_queue(Pid) ->
-    gen_server:call(Pid, get_queue).
+get_comments(Pid, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_comments, StartKey, StartDocId, Rows}).
 
-get_favorites(Pid) ->
-    gen_server:call(Pid, get_favorites).
+get_brews(Pid, Rows) ->
+    gen_server:call(Pid, {get_brews, Rows}).
 
-get_ratings(Pid) ->
-    gen_server:call(Pid, get_ratings).
+get_brews(Pid, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_brews, StartKey, StartDocId, Rows}).
+
+get_queue(Pid, Rows) ->
+    gen_server:call(Pid, {get_queue, Rows}).
+
+get_queue(Pid, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_queue, StartKey, StartDocId, Rows}).
+
+get_favorites(Pid, Rows) ->
+    gen_server:call(Pid, {get_favorites, Rows}).
+
+get_favorites(Pid, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_favorites, StartKey, StartDocId, Rows}).
+
+get_ratings(Pid, Rows) ->
+    gen_server:call(Pid, {get_ratings, Rows}).
+
+get_ratings(Pid, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_ratings, StartKey, StartDocId, Rows}).
 
 add_to_queue(Pid, RecipeId) ->
     gen_server:call(Pid, {add_to_queue, RecipeId}).
@@ -104,13 +124,14 @@ init([UserName]) ->
     Connection = couchbeam_server:start_connection_link(),   
     ProfilesDatabase = couchbeam_db:open_or_create(Connection, "be_profiles"),
     RecipesDatabase = couchbeam_db:open_or_create(Connection, "be_recipes"),
+    CommentsDatabase = couchbeam_db:open_or_create(Connection, "be_comments"),
     
     {ok, EmailAddress} = db_interface:get_email_address(UserName),
     ProfileImageName = digest2str(erlang:md5(wf:clean_lower(EmailAddress))),
 
     Profile = couchbeam_db:open_doc(ProfilesDatabase, EmailAddress),
     
-    {ok, #state{username=UserName, couch_connection=Connection, profiles_database=ProfilesDatabase, recipes_database=RecipesDatabase, user_id=EmailAddress, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url=?PROFILE_IMAGE_URL++ProfileImageName, profile=Profile}}.
+    {ok, #state{username=UserName, couch_connection=Connection, profiles_database=ProfilesDatabase, recipes_database=RecipesDatabase, comments_database=CommentsDatabase, user_id=EmailAddress, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url=?PROFILE_IMAGE_URL++ProfileImageName, profile=Profile}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -141,14 +162,35 @@ handle_call(get_profile, _From, State) ->
     {reply, {ok, State#state.profile}, State};
 handle_call(get_profile_image_url, _From, State) ->
     {reply, {ok, State#state.profile_image_url}, State};
-handle_call(get_queue, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}]),
+handle_call({get_comments, Rows}, _From, State) -> 
+    {ok, Results} = get_view_results(State#state.comments_database, "comments", "personal", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call(get_favorites, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}]),
+handle_call({get_comments, StartKey, StartDocId, Rows}, _From, State) -> 
+    {ok, Results} = get_view_results(State#state.comments_database, "comments", "personal", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call(get_ratings, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}]),
+handle_call({get_brews, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_brews, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_queue, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_queue, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_favorites, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_favorites, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_ratings, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_ratings, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({add_to_queue, RecipeId}, _From, State) ->
     Recipe = couchbeam_db:open_doc(State#state.recipes_database, RecipeId),
