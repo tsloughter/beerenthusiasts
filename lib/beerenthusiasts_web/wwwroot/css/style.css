@@ -70,8 +70,44 @@ ul.nav li {
     vertical-align: middle;
 }
 
+#go {
+    vertical-align: middle;
+    padding-bottom: 4px;
+}
+
+p {
+    color: #afafaf;
+    margin-top: 1em;
+}
+
+#stats_and_ads {
+    margin-top: 1em;
+    color: #afafaf;
+}
+
+#stats_and_ads strong {
+    color: #9a9a9a;
+}
+
+.color_dark_grey {
+    color: #322e23;
+}
+
+#stats_and_ads th, #stats_and_ads td, #stats_and_ads caption {
+padding:0px;
+}
+
 .push {
     height: 300px;
+}
+
+h3 {
+    color: #ad610b;
+    margin-bottom: 0em;
+}
+
+.color_black {
+    color:black;
 }
 
 a {
