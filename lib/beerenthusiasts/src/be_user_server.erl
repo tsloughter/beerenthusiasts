@@ -12,7 +12,9 @@
 
 %% API
 -export([start_link/1, start/2, upload_profile_image/2, update_profile/2, logout/1,
-         update_profile/3, get_profile/1, get_profile_image_url/1]).
+         update_profile/3, get_profile/1, get_profile_image_url/1, add_to_queue/2,
+         add_to_favorites/2, add_rating/3, get_ratings/1, get_favorites/1, get_queue/1,
+         get_comments/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -22,8 +24,8 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {username, couch_connection, couch_database,
-                email_address, profile_image_name, profile_image_url,
+-record(state, {username, couch_connection, profiles_database, recipes_database,
+                user_id, email_address, profile_image_name, profile_image_url,
                 profile}).
 
 %%%===================================================================
@@ -75,13 +77,13 @@ get_favorites(Pid) ->
 get_ratings(Pid) ->
     gen_server:call(Pid, get_ratings).
 
-add_to_queue(Pid, Recipe) ->
-    gen_server:call(Pid, {add_to_queue, Recipe}).
+add_to_queue(Pid, RecipeId) ->
+    gen_server:call(Pid, {add_to_queue, RecipeId}).
 
-add_to_favorites(Pid, Recipe) ->
-    gen_server:call(Pid, {add_to_favorites, Recipe}).
+add_to_favorites(Pid, RecipeId) ->
+    gen_server:call(Pid, {add_to_favorites, RecipeId}).
 
-add_to_favorites(Pid, Recipe, Rating) ->
+add_rating(Pid, Recipe, Rating) ->
     gen_server:call(Pid, {add_rating, Recipe, Rating}).
 
 logout(Pid) ->
@@ -100,14 +102,15 @@ logout(Pid) ->
 %%--------------------------------------------------------------------
 init([UserName]) ->
     Connection = couchbeam_server:start_connection_link(),   
-    Database = couchbeam_db:create(Connection, "profiles"),
+    ProfilesDatabase = couchbeam_db:open_or_create(Connection, "be_profiles"),
+    RecipesDatabase = couchbeam_db:open_or_create(Connection, "be_recipes"),
     
     {ok, EmailAddress} = db_interface:get_email_address(UserName),
     ProfileImageName = digest2str(erlang:md5(wf:clean_lower(EmailAddress))),
 
-    Profile = couchbeam_db:open_doc(Database, EmailAddress),
+    Profile = couchbeam_db:open_doc(ProfilesDatabase, EmailAddress),
     
-    {ok, #state{username=UserName, couch_connection=Connection, couch_database=Database, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url=?PROFILE_IMAGE_URL++ProfileImageName, profile=Profile}}.
+    {ok, #state{username=UserName, couch_connection=Connection, profiles_database=ProfilesDatabase, recipes_database=RecipesDatabase, user_id=EmailAddress, email_address=EmailAddress, profile_image_name=ProfileImageName, profile_image_url=?PROFILE_IMAGE_URL++ProfileImageName, profile=Profile}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -128,16 +131,51 @@ handle_call({upload_profile_image, LocalFileName}, _From, State) ->
     {reply, ok, State};
 handle_call({update_profile, KeyValue}, _From, State) ->
     UpdatedProfile = couchbeam_doc:extend(KeyValue, State#state.profile),
-    couchbeam_db:save_doc(State#state.couch_database, UpdatedProfile),
+    couchbeam_db:save_doc(State#state.profiles_database, UpdatedProfile),
     {reply, ok, State#state{profile=UpdatedProfile}};
 handle_call({update_profile, Key, Value}, _From, State) ->
     UpdatedProfile = couchbeam_doc:extend(Key, Value, State#state.profile),
-    couchbeam_db:save_doc(State#state.couch_database, UpdatedProfile),
+    couchbeam_db:save_doc(State#state.profiles_database, UpdatedProfile),
     {reply, ok, State#state{profile=UpdatedProfile}};
 handle_call(get_profile, _From, State) ->
     {reply, {ok, State#state.profile}, State};
 handle_call(get_profile_image_url, _From, State) ->
     {reply, {ok, State#state.profile_image_url}, State};
+handle_call(get_queue, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}]),
+    {reply, Results, State};
+handle_call(get_favorites, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}]),
+    {reply, Results, State};
+handle_call(get_ratings, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}]),
+    {reply, Results, State};
+handle_call({add_to_queue, RecipeId}, _From, State) ->
+    Recipe = couchbeam_db:open_doc(State#state.recipes_database, RecipeId),
+    
+    NewRecipe = case couchbeam_doc:get_value(<<"queue">>, Recipe) of
+                    undefined ->
+                        couchbeam_doc:set_value(<<"queue">>, [State#state.user_id], Recipe);
+                    Queue ->
+                        couchbeam_doc:set_value(<<"queue">>, [State#state.user_id | Queue], Recipe)
+                end,
+    
+    couchbeam_db:save_doc(State#state.recipes_database, NewRecipe),
+    
+    {reply, ok, State};
+handle_call({add_to_favorites, RecipeId}, _From, State) ->
+    Recipe = couchbeam_db:open_doc(State#state.recipes_database, RecipeId),
+    
+    NewRecipe = case couchbeam_doc:get_value(<<"favorites">>, Recipe) of
+                    undefined ->
+                        couchbeam_doc:set_value(<<"favorites">>, [State#state.user_id], Recipe);
+                    Favorites ->
+                        couchbeam_doc:set_value(<<"favorites">>, [State#state.user_id | Favorites], Recipe)
+                end,
+    
+    couchbeam_db:save_doc(State#state.recipes_database, NewRecipe),
+    
+    {reply, ok, State};
 handle_call(logout, _From, State) ->
     {stop, logout, State}.
 
@@ -203,3 +241,9 @@ digest2str(Digest) ->
 -define(IN(X,Min,Max), X >= Min, X =< Max).
 nibble2hex(X) when ?IN(X, 0, 9)   -> X + $0;
 nibble2hex(X) when ?IN(X, 10, 15) -> X - 10 + $a.
+
+get_view_results(Database, DesignDoc, Name, Attributes) ->
+    ViewPid = couchbeam_db:query_view(Database, {DesignDoc, Name}, Attributes),    
+    ParsedResults = couchbeam_view:parse_view(ViewPid),
+    couchbeam_view:close_view(ViewPid),
+    {ok, ParsedResults}.
