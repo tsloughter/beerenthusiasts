@@ -19,7 +19,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {}).
+-record(state, {couch_connection}).
 
 %%%===================================================================
 %%% API
@@ -51,7 +51,11 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
-    {ok, #state{}}.
+    Connection = couchbeam_server:start_connection_link(),    
+    
+    create_couch_dbs_and_views(Connection),
+
+    {ok, #state{couch_connection=Connection}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -125,3 +129,49 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
+create_couch_dbs_and_views(Connection) ->
+    Recipes = couchbeam_db:open_or_create(Connection, "be_recipes"),
+    PersonalRecipesDesignDoc = {[
+                         {<<"_id">>, <<"_design/recipes">>},
+                         {<<"language">>,<<"javascript">>},
+                         {<<"views">>,
+                          {[{<<"personal">>,
+                             {[{<<"map">>,
+                                <<"function (doc) {\n if (doc.type == \"recipe\") {\n emit(doc.email_address, doc);\n}\n}">>
+                               }                                 
+                              ]}
+                            },
+                            {<<"favorites">>,
+                             {[{<<"map">>,
+                                <<"function (doc) {\n if (doc.type == \"recipe\") {\n for (var i in doc.favorites) {\nemit(doc.favorites[i],null);\n}\n}\n}">>
+                               }                                 
+                              ]}
+                            },
+                            {<<"queue">>,
+                             {[{<<"map">>,
+                                <<"function(doc) {\n if (doc.type == \"recipe\") {\n for (var i in doc.queue) {\nemit(doc.queue[i],null);\n}\n}\n}">>
+                               }]}
+                            }
+                           ]}
+                         }]},    
+    couchbeam_db:save_doc(Recipes, PersonalRecipesDesignDoc),
+    
+    _Profiles = couchbeam_db:open_or_create(Connection, "be_profiles"),    
+    
+    Comments = couchbeam_db:open_or_create(Connection, "be_comments"),
+    CommentsDesignDoc = {[
+                          {<<"_id">>, <<"_design/comments">>},
+                          {<<"language">>,<<"javascript">>},
+                          {<<"views">>,
+                          {[{<<"user">>,
+                             {[{<<"map">>,
+                                <<"function (doc) {\n emit(doc.email_address, doc);\n}">>
+                               }]}
+                            },
+                            {<<"recipe">>,
+                             {[{<<"map">>,
+                                <<"function (doc) {\n emit(doc.recipe_id, doc);\n}">>
+                               }]}
+                            }]}
+                          }]},    
+    couchbeam_db:save_doc(Comments, CommentsDesignDoc).

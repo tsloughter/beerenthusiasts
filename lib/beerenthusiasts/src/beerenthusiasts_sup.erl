@@ -74,7 +74,9 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
  
-    Children = [{erls3, {erls3, start_link, ["profiles.beerenthusiasts.org"]},
+    Children = [{beerenthusiasts, {beerenthusiasts, start_link, []},
+                 Restart, Shutdown, Type, [beerenthusiasts]},
+                {erls3, {erls3, start_link, ["profiles.beerenthusiasts.org"]},
                  Restart, Shutdown, Type, [erls3]},
                 {be_user_utils_server, {be_user_utils_server, start_link, []},
                  Restart, Shutdown, Type, [be_user_utils_server]}],

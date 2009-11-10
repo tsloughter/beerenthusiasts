@@ -63,6 +63,27 @@ get_profile(Pid) ->
 get_profile_image_url(Pid) ->
     gen_server:call(Pid, get_profile_image_url).
 
+get_comments(Pid) ->
+    gen_server:call(Pid, get_comments).
+
+get_queue(Pid) ->
+    gen_server:call(Pid, get_queue).
+
+get_favorites(Pid) ->
+    gen_server:call(Pid, get_favorites).
+
+get_ratings(Pid) ->
+    gen_server:call(Pid, get_ratings).
+
+add_to_queue(Pid, Recipe) ->
+    gen_server:call(Pid, {add_to_queue, Recipe}).
+
+add_to_favorites(Pid, Recipe) ->
+    gen_server:call(Pid, {add_to_favorites, Recipe}).
+
+add_to_favorites(Pid, Recipe, Rating) ->
+    gen_server:call(Pid, {add_rating, Recipe, Rating}).
+
 logout(Pid) ->
     gen_server:call(Pid, logout).
 
