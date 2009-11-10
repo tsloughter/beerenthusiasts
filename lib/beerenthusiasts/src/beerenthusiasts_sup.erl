@@ -9,7 +9,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, login/2]).
+-export([start_link/0, login/2, start_user_server/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -50,6 +50,14 @@ login(UserName, Password) ->
             {error, Reason}
     end.
 
+start_user_server(UserName) ->
+    case supervisor:start_child(?SERVER, {erlang:make_ref(), {be_user_sup, start_link, []}, transient, 2000, supervisor, [be_user_sup]}) of
+        {ok, Pid} ->
+            be_user_server:start(Pid, UserName);
+        _ ->
+            ?ERROR_MSG("Unable to start ~p supervisor", [UserName]),
+            {error, "Unable to start supervisor"}
+    end.
 %%--------------------------------------------------------------------
 %% @private
 %% @doc

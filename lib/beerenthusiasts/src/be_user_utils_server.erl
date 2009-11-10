@@ -54,7 +54,7 @@ register_user(UserName, FullName, EmailAddress, Password) ->
 %%--------------------------------------------------------------------
 init([]) ->
     Connection = couchbeam_server:start_connection_link(),   
-    Database = couchbeam_db:create(Connection, "profiles"),
+    Database = couchbeam_db:open_or_create(Connection, "be_profiles"),
 
     {ok, #state{couch_connection=Connection, couch_database=Database}}.
 
