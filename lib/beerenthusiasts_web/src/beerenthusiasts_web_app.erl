@@ -34,4 +34,24 @@ route(Path) -> nitrogen:route(Path).
 %% of a page. Alternatively, you can use the wf:redirect* functions to 
 %% issue a client-side redirect to a new page.
 
-request(Module) -> nitrogen:request(Module).
+request(Module) ->
+    case wf:user() of
+        undefined ->
+            case wf:session(user_server) of
+                undefined ->
+                    {ok, Pid} = beerenthusiasts_sup:start_user_server(),
+                    wf:session(be_user_server, Pid),
+                    nitrogen:request(Module);         
+                Pid ->
+                    case is_process_alive(Pid) of
+                        true ->
+                            nitrogen:request(Module);         
+                        false ->
+                            {ok, Pid} = beerenthusiasts_sup:start_user_server(),
+                            wf:session(user_server, Pid),
+                            nitrogen:request(Module)
+                    end
+            end;
+        _UserName ->
+            nitrogen:request(Module)
+    end.

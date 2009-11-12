@@ -11,12 +11,15 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, start/2, upload_profile_image/2, update_profile/2, logout/1,
+-export([start_link/1, start/2, start_link/0, start/1, upload_profile_image/2, update_profile/2,
+         logout/1, get_queue/3, get_brews/3, get_ratings/3, get_favorites/3, get_comments/3,
+         get_queue/4, get_brews/5, get_ratings/5, get_favorites/5, get_comments/5,
+         count_queue/2, count_brews/2, count_ratings/2, count_favorites/2, count_comments/2,
          update_profile/3, get_profile/1, get_profile_image_url/1, add_to_queue/2,
          add_to_favorites/2, add_rating/3, get_brews/2, get_brews/4, count_brews/1,
          get_ratings/2,  get_ratings/4, count_ratings/1, count_favorites/1, count_queue/1,
-         get_favorites/2, get_favorites/4, get_queue/2, get_queue/4, 
-         get_comments/2, get_comments/4, count_comments/1]).
+         get_favorites/2, get_favorites/4, get_queue/2, %get_queue/3, 
+         get_comments/2, get_comments/4, count_comments/1, does_user_exist/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -47,6 +50,12 @@ start_link(UserName) ->
 start(Super, UserName) ->
     supervisor:start_child (Super, [UserName]).
 
+start_link() ->
+    gen_server:start_link(?MODULE, [], []).
+
+start(Super) ->
+    supervisor:start_child (Super, []).
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
@@ -67,47 +76,92 @@ get_profile(Pid) ->
 get_profile_image_url(Pid) ->
     gen_server:call(Pid, get_profile_image_url).
 
+get_comments(Pid, UserName, Rows) ->
+    gen_server:call(Pid, {get_comments, UserName, Rows}).
+
 get_comments(Pid, Rows) ->
     gen_server:call(Pid, {get_comments, Rows}).
+
+get_comments(Pid, UserName, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_comments, UserName, StartKey, StartDocId, Rows}).
 
 get_comments(Pid, StartKey, StartDocId, Rows) ->
     gen_server:call(Pid, {get_comments, StartKey, StartDocId, Rows}).
 
+count_comments(Pid, UserName) ->
+    gen_server:call(Pid, {count_comments, UserName}).
+
 count_comments(Pid) ->
     gen_server:call(Pid, count_comments).
+
+get_brews(Pid, UserName, Rows) ->
+    gen_server:call(Pid, {get_brews, UserName, Rows}).
 
 get_brews(Pid, Rows) ->
     gen_server:call(Pid, {get_brews, Rows}).
 
+get_brews(Pid, UserName, StartKey, StartDocId, Rows) ->   
+    gen_server:call(Pid, {get_brews, UserName, StartKey, StartDocId, Rows}).
+
 get_brews(Pid, StartKey, StartDocId, Rows) ->
     gen_server:call(Pid, {get_brews, StartKey, StartDocId, Rows}).
+
+count_brews(Pid, UserName) ->
+    gen_server:call(Pid, {count_brews, UserName}).
 
 count_brews(Pid) ->
     gen_server:call(Pid, count_brews).
 
+get_queue(Pid, UserName, Rows) ->
+    gen_server:call(Pid, {get_queue, UserName, Rows}).
+
 get_queue(Pid, Rows) ->
     gen_server:call(Pid, {get_queue, Rows}).
 
-get_queue(Pid, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_queue, StartKey, StartDocId, Rows}).
+get_queue(Pid, UserName, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_queue, UserName, StartDocId, Rows}).
+
+%get_queue(Pid, StartDocId, Rows) ->
+%    gen_server:call(Pid, {get_queue, StartKey, StartDocId, Rows}).
+
+count_queue(Pid, UserName) ->
+    gen_server:call(Pid, {count_queue, UserName}).
 
 count_queue(Pid) ->
     gen_server:call(Pid, count_queue).
 
+get_favorites(Pid, UserName, Rows) ->
+    gen_server:call(Pid, {get_favorites, UserName, Rows}).
+
 get_favorites(Pid, Rows) ->
     gen_server:call(Pid, {get_favorites, Rows}).
+
+get_favorites(Pid, UserName, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_favorites, UserName, StartKey, StartDocId, Rows}).
 
 get_favorites(Pid, StartKey, StartDocId, Rows) ->
     gen_server:call(Pid, {get_favorites, StartKey, StartDocId, Rows}).
 
+count_favorites(Pid, UserName) ->
+    gen_server:call(Pid, {count_favorites, UserName}).
+
 count_favorites(Pid) ->
     gen_server:call(Pid, count_favorites).
+
+get_ratings(Pid, UserName, Rows) ->
+    gen_server:call(Pid, {get_ratings, UserName, Rows}).
 
 get_ratings(Pid, Rows) ->
     gen_server:call(Pid, {get_ratings, Rows}).
 
+get_ratings(Pid, UserName, StartKey, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_ratings, UserName, StartKey, StartDocId, Rows}).
+
 get_ratings(Pid, StartKey, StartDocId, Rows) ->
     gen_server:call(Pid, {get_ratings, StartKey, StartDocId, Rows}).
+
+count_ratings(Pid, UserName) ->
+    gen_server:call(Pid, {count_ratings, UserName}).
 
 count_ratings(Pid) ->
     gen_server:call(Pid, count_ratings).
@@ -121,6 +175,9 @@ add_to_favorites(Pid, RecipeId) ->
 add_rating(Pid, Recipe, Rating) ->
     gen_server:call(Pid, {add_rating, Recipe, Rating}).
 
+does_user_exist(Pid, UserName) ->
+    gen_server:call(Pid, {does_user_exist, UserName}).
+    
 logout(Pid) ->
     gen_server:call(Pid, logout).
 
@@ -135,13 +192,20 @@ logout(Pid) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
+init([]) ->
+    Connection = couchbeam_server:start_connection_link(),   
+    ProfilesDatabase = couchbeam_db:open_or_create(Connection, "be_profiles"),
+    RecipesDatabase = couchbeam_db:open_or_create(Connection, "be_recipes"),
+    CommentsDatabase = couchbeam_db:open_or_create(Connection, "be_comments"),
+    
+    {ok, #state{couch_connection=Connection, profiles_database=ProfilesDatabase, recipes_database=RecipesDatabase, comments_database=CommentsDatabase}};
 init([UserName]) ->
     Connection = couchbeam_server:start_connection_link(),   
     ProfilesDatabase = couchbeam_db:open_or_create(Connection, "be_profiles"),
     RecipesDatabase = couchbeam_db:open_or_create(Connection, "be_recipes"),
     CommentsDatabase = couchbeam_db:open_or_create(Connection, "be_comments"),
     
-    {ok, EmailAddress} = db_interface:get_email_address(UserName),
+    {ok, EmailAddress} = be_db_interface:get_email_address(UserName),
     ProfileImageName = digest2str(erlang:md5(wf:clean_lower(EmailAddress))),
 
     Profile = couchbeam_db:open_doc(ProfilesDatabase, EmailAddress),
@@ -178,52 +242,118 @@ handle_call(get_profile, _From, State) ->
 handle_call(get_profile_image_url, _From, State) ->
     {reply, {ok, State#state.profile_image_url}, State};
 
+handle_call({get_comments, UserName, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", UserId}, {"limit", Rows}]),
+    {reply, Results, State};
 handle_call({get_comments, Rows}, _From, State) -> 
     {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_comments, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_comments, StartKey, StartDocId, Rows}, _From, State) -> 
     {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
+
+handle_call({count_comments, UserName}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Count} = get_view_count(State#state.comments_database, "comments", "user", [{"key", UserId}]),
+    {reply, Count, State};
 handle_call(count_comments, _From, State) -> 
     {ok, Count} = get_view_count(State#state.comments_database, "comments", "user", [{"key", State#state.user_id}]),
     {reply, Count, State};
 
+handle_call({get_brews, UserName, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", UserId}, {"limit", Rows}]),
+    {reply, Results, State};
 handle_call({get_brews, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_brews, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_brews, StartKey, StartDocId, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
+
+handle_call({count_brews, UserName}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "personal", [{"key", UserId}]),
+    {reply, Count, State};
 handle_call(count_brews, _From, State) -> 
     {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}]),
     {reply, Count, State};
 
+handle_call({get_queue, UserName, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    io:format ("~n~p~n", [UserId]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", UserId}, {"limit", Rows}]),
+    {reply, Results, State};
 handle_call({get_queue, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_queue, StartKey, StartDocId, Rows}, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+handle_call({get_queue, UserName, StartDocId, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
+%handle_call({get_queue, StartKey, StartDocId, Rows}, _From, State) ->
+%    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+%    {reply, Results, State};
+
+handle_call({count_queue, UserName}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "queue", [{"key", UserId}]),
+    {reply, Count, State};
 handle_call(count_queue, _From, State) -> 
     {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}]),
     {reply, Count, State};
 
+handle_call({get_favorites, UserName, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", UserId}, {"limit", Rows}]),
+    {reply, Results, State};
 handle_call({get_favorites, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_favorites, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_favorites, StartKey, StartDocId, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
+
+handle_call({count_favorites, UserName}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "favorites", [{"key", UserId}]),
+    {reply, Count, State};
 handle_call(count_favorites, _From, State) -> 
     {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}]),
     {reply, Count, State};
 
+handle_call({get_ratings, UserName, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"limit", Rows}]),
+    {reply, Results, State};
 handle_call({get_ratings, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {reply, Results, State};
+handle_call({get_ratings, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_ratings, StartKey, StartDocId, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
+
+handle_call({count_ratings, UserName}, _From, State) ->
+    {ok, UserId} = get_user_id(UserName),
+    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}]),
+    {reply, Count, State};
 handle_call(count_ratings, _From, State) -> 
     {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}]),
     {reply, Count, State};
@@ -254,6 +384,14 @@ handle_call({add_to_favorites, RecipeId}, _From, State) ->
     couchbeam_db:save_doc(State#state.recipes_database, NewRecipe),
     
     {reply, ok, State};
+handle_call({does_user_exist, UserName}, _From, State) ->
+    Reply = case be_db_interface:is_username_used(UserName) of
+                true ->
+                    false;
+                false ->
+                    true
+            end,
+    {reply, Reply, State};
 handle_call(logout, _From, State) ->
     {stop, logout, State}.
 
@@ -333,3 +471,6 @@ get_view_count(Database, DesignDoc, Name, Attributes) ->
     Count = couchbeam_view:count(ViewPid),
     couchbeam_view:close_view(ViewPid),
     {ok, Count}.
+
+get_user_id(UserName) ->
+    be_db_interface:get_email_address(UserName).

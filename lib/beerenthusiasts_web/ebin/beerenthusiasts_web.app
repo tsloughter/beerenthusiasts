@@ -4,6 +4,7 @@
 	{mod, {beerenthusiasts_web_app, []}},
   {modules, [beerenthusiasts_web_app, 
              web_index,
+             web_queue,            
              web_profile
    ]},             
   {registered,[beerenthusiasts_web]},        
