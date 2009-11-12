@@ -13,13 +13,16 @@
 %% API
 -export([start_link/1, start/2, start_link/0, start/1, upload_profile_image/2, update_profile/2,
          logout/1, get_queue/3, get_brews/3, get_ratings/3, get_favorites/3, get_comments/3,
-         get_queue/4, get_brews/5, get_ratings/5, get_favorites/5, get_comments/5,
+         get_queue/4, get_personal_brews/3, get_personal_ratings/3, get_personal_favorites/3,
+         get_personal_comments/3,
+         get_personal_brews/2, get_personal_ratings/2, get_personal_favorites/2,
+         get_personal_comments/2, get_personal_queue/2, get_personal_queue/3,
          count_queue/2, count_brews/2, count_ratings/2, count_favorites/2, count_comments/2,
          update_profile/3, get_profile/1, get_profile_image_url/1, add_to_queue/2,
-         add_to_favorites/2, add_rating/3, get_brews/2, get_brews/4, count_brews/1,
-         get_ratings/2,  get_ratings/4, count_ratings/1, count_favorites/1, count_queue/1,
-         get_favorites/2, get_favorites/4, get_queue/2, %get_queue/3, 
-         get_comments/2, get_comments/4, count_comments/1, does_user_exist/2]).
+         add_to_favorites/2, add_rating/3, get_brews/4, count_brews/1,
+         get_ratings/4, count_ratings/1, count_favorites/1, count_queue/1,
+         get_favorites/4, 
+         get_comments/4, count_comments/1, does_user_exist/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -79,14 +82,14 @@ get_profile_image_url(Pid) ->
 get_comments(Pid, UserName, Rows) ->
     gen_server:call(Pid, {get_comments, UserName, Rows}).
 
-get_comments(Pid, Rows) ->
-    gen_server:call(Pid, {get_comments, Rows}).
+get_personal_comments(Pid, Rows) ->
+    gen_server:call(Pid, {get_personal_comments, Rows}).
 
-get_comments(Pid, UserName, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_comments, UserName, StartKey, StartDocId, Rows}).
+get_comments(Pid, UserName, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_comments, UserName, StartDocId, Rows}).
 
-get_comments(Pid, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_comments, StartKey, StartDocId, Rows}).
+get_personal_comments(Pid, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_personal_comments, StartDocId, Rows}).
 
 count_comments(Pid, UserName) ->
     gen_server:call(Pid, {count_comments, UserName}).
@@ -97,14 +100,14 @@ count_comments(Pid) ->
 get_brews(Pid, UserName, Rows) ->
     gen_server:call(Pid, {get_brews, UserName, Rows}).
 
-get_brews(Pid, Rows) ->
-    gen_server:call(Pid, {get_brews, Rows}).
+get_personal_brews(Pid, Rows) ->
+    gen_server:call(Pid, {get_personal_brews, Rows}).
 
-get_brews(Pid, UserName, StartKey, StartDocId, Rows) ->   
-    gen_server:call(Pid, {get_brews, UserName, StartKey, StartDocId, Rows}).
+get_brews(Pid, UserName, StartDocId, Rows) ->   
+    gen_server:call(Pid, {get_brews, UserName, StartDocId, Rows}).
 
-get_brews(Pid, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_brews, StartKey, StartDocId, Rows}).
+get_personal_brews(Pid, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_personal_brews, StartDocId, Rows}).
 
 count_brews(Pid, UserName) ->
     gen_server:call(Pid, {count_brews, UserName}).
@@ -115,14 +118,14 @@ count_brews(Pid) ->
 get_queue(Pid, UserName, Rows) ->
     gen_server:call(Pid, {get_queue, UserName, Rows}).
 
-get_queue(Pid, Rows) ->
-    gen_server:call(Pid, {get_queue, Rows}).
+get_personal_queue(Pid, Rows) ->
+    gen_server:call(Pid, {get_personal_queue, Rows}).
 
 get_queue(Pid, UserName, StartDocId, Rows) ->
     gen_server:call(Pid, {get_queue, UserName, StartDocId, Rows}).
 
-%get_queue(Pid, StartDocId, Rows) ->
-%    gen_server:call(Pid, {get_queue, StartKey, StartDocId, Rows}).
+get_personal_queue(Pid, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_personal_queue, StartDocId, Rows}).
 
 count_queue(Pid, UserName) ->
     gen_server:call(Pid, {count_queue, UserName}).
@@ -133,14 +136,14 @@ count_queue(Pid) ->
 get_favorites(Pid, UserName, Rows) ->
     gen_server:call(Pid, {get_favorites, UserName, Rows}).
 
-get_favorites(Pid, Rows) ->
-    gen_server:call(Pid, {get_favorites, Rows}).
+get_personal_favorites(Pid, Rows) ->
+    gen_server:call(Pid, {get_personal_favorites, Rows}).
 
-get_favorites(Pid, UserName, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_favorites, UserName, StartKey, StartDocId, Rows}).
+get_favorites(Pid, UserName, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_favorites, UserName, StartDocId, Rows}).
 
-get_favorites(Pid, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_favorites, StartKey, StartDocId, Rows}).
+get_personal_favorites(Pid, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_personal_favorites, StartDocId, Rows}).
 
 count_favorites(Pid, UserName) ->
     gen_server:call(Pid, {count_favorites, UserName}).
@@ -151,14 +154,14 @@ count_favorites(Pid) ->
 get_ratings(Pid, UserName, Rows) ->
     gen_server:call(Pid, {get_ratings, UserName, Rows}).
 
-get_ratings(Pid, Rows) ->
-    gen_server:call(Pid, {get_ratings, Rows}).
+get_personal_ratings(Pid, Rows) ->
+    gen_server:call(Pid, {get_personal_ratings, Rows}).
 
-get_ratings(Pid, UserName, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_ratings, UserName, StartKey, StartDocId, Rows}).
+get_ratings(Pid, UserName, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_ratings, UserName, StartDocId, Rows}).
 
-get_ratings(Pid, StartKey, StartDocId, Rows) ->
-    gen_server:call(Pid, {get_ratings, StartKey, StartDocId, Rows}).
+get_personal_ratings(Pid, StartDocId, Rows) ->
+    gen_server:call(Pid, {get_personal_ratings, StartDocId, Rows}).
 
 count_ratings(Pid, UserName) ->
     gen_server:call(Pid, {count_ratings, UserName}).
@@ -246,15 +249,15 @@ handle_call({get_comments, UserName, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
     {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_comments, Rows}, _From, State) -> 
+handle_call({get_personal_comments, Rows}, _From, State) -> 
     {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_comments, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+handle_call({get_comments, UserName, StartDocId, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_comments, StartKey, StartDocId, Rows}, _From, State) -> 
-    {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+handle_call({get_personal_comments, StartDocId, Rows}, _From, State) -> 
+    {ok, Results} = get_view_results(State#state.comments_database, "comments", "user", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 
 handle_call({count_comments, UserName}, _From, State) ->
@@ -269,15 +272,15 @@ handle_call({get_brews, UserName, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_brews, Rows}, _From, State) ->
+handle_call({get_personal_brews, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_brews, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+handle_call({get_brews, UserName, StartDocId, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_brews, StartKey, StartDocId, Rows}, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+handle_call({get_personal_brews, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "personal", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 
 handle_call({count_brews, UserName}, _From, State) ->
@@ -293,16 +296,16 @@ handle_call({get_queue, UserName, Rows}, _From, State) ->
     io:format ("~n~p~n", [UserId]),
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_queue, Rows}, _From, State) ->
+handle_call({get_personal_queue, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_queue, UserName, StartDocId, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
-%handle_call({get_queue, StartKey, StartDocId, Rows}, _From, State) ->
-%    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
-%    {reply, Results, State};
+handle_call({get_personal_queue, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {reply, Results, State};
 
 handle_call({count_queue, UserName}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
@@ -316,15 +319,15 @@ handle_call({get_favorites, UserName, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_favorites, Rows}, _From, State) ->
+handle_call({get_personal_favorites, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_favorites, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+handle_call({get_favorites, UserName, StartDocId, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_favorites, StartKey, StartDocId, Rows}, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+handle_call({get_personal_favorites, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "favorites", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 
 handle_call({count_favorites, UserName}, _From, State) ->
@@ -339,15 +342,15 @@ handle_call({get_ratings, UserName, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_ratings, Rows}, _From, State) ->
+handle_call({get_personal_ratings, Rows}, _From, State) ->
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_ratings, UserName, StartKey, StartDocId, Rows}, _From, State) ->
+handle_call({get_ratings, UserName, StartDocId, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
-handle_call({get_ratings, StartKey, StartDocId, Rows}, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"startkey", StartKey}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+handle_call({get_personal_ratings, StartDocId, Rows}, _From, State) ->
+    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 
 handle_call({count_ratings, UserName}, _From, State) ->
