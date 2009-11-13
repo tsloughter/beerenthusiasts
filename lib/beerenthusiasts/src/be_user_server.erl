@@ -465,7 +465,7 @@ nibble2hex(X) when ?IN(X, 10, 15) -> X - 10 + $a.
 %%% STORE VIEWS PID IN STATE DON"T REDO EACH TIME
 get_view_results(Database, DesignDoc, Name, Attributes) ->
     ViewPid = couchbeam_db:query_view(Database, {DesignDoc, Name}, Attributes),    
-    {_, _, _, ParsedResults} = couchbeam_view:parse_view(ViewPid),
+    ParsedResults = couchbeam_view:parse_view(ViewPid),
     couchbeam_view:close_view(ViewPid),
     {ok, ParsedResults}.
 
