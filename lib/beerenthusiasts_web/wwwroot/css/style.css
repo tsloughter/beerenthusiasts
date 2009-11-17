@@ -89,6 +89,10 @@ p {
     color: #9a9a9a;
 }
 
+#tabs {
+    padding-top: 1em;
+}
+
 .color_dark_grey {
     color: #322e23;
 }
