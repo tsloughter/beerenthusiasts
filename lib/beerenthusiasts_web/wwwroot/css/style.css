@@ -5,6 +5,10 @@
     width:72em;
 }
 
+.right {
+    float: right;
+}
+
 #header {
     height: 100px;
     background-image:url('../header_background.png');
@@ -76,10 +80,13 @@ ul.nav li {
 }
 
 p {
-    color: #afafaf;
     margin-top: 1em;
 }
 
+.text_block {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
 #stats_and_ads {
     margin-top: 1em;
     color: #afafaf;
