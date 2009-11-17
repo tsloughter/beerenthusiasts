@@ -17,6 +17,8 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
+-include("couchbeam.hrl").
+
 -define(SERVER, ?MODULE). 
 
 -record(state, {couch_connection}).
@@ -51,9 +53,10 @@ start_link() ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
+    %Connection = couchbeam_server:start_connection_link(#couchdb_params{host="beerenthusiasts.cloudant.com", username="beerenthusiasts", password="temp4now"}),
     Connection = couchbeam_server:start_connection_link(),    
     
-    create_couch_dbs_and_views(Connection),
+    %create_couch_dbs_and_views(Connection),
 
     {ok, #state{couch_connection=Connection}}.
 
@@ -150,11 +153,31 @@ create_couch_dbs_and_views(Connection) ->
                             {<<"queue">>,
                              {[{<<"map">>,
                                 <<"function(doc) {\n if (doc.type == \"recipe\") {\n for (var i in doc.queue) {\nemit(doc.queue[i],null);\n}\n}\n}">>
-                               }]}
+                               }]} 
+                            },
+                            {<<"ratings">>,
+                             {[{<<"map">>,
+                                <<"function(doc) {\n if (doc.type == \"rating\") {\n emit (doc.user_id, doc);\n}\n}">>
+                               }]} 
                             }
                            ]}
                          }]},    
     couchbeam_db:save_doc(Recipes, PersonalRecipesDesignDoc),
+
+    RatingsDesignDoc = {[
+                          {<<"_id">>, <<"_design/ratings">>},
+                          {<<"language">>,<<"javascript">>},
+                          {<<"views">>,
+                          {[{<<"average">>,
+                             {[{<<"map">>,
+                                <<"function(doc) { if (doc.type == \"rating\") emit(doc.recipe_id, doc.rating); }">>
+                               },
+                               {<<"reduce">>,
+                                <<"function(keys, values) { return (sum(values) / values.length) }">>
+                               }]}
+                            }]}
+                          }]},    
+    couchbeam_db:save_doc(Recipes, RatingsDesignDoc),
     
     _Profiles = couchbeam_db:open_or_create(Connection, "be_profiles"),    
     

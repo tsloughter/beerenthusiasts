@@ -14,7 +14,7 @@
 -export([start_link/1, start/2, start_link/0, start/1, upload_profile_image/2, update_profile/2,
          logout/1, get_queue/3, get_brews/3, get_ratings/3, get_favorites/3, get_comments/3,
          get_queue/4, get_personal_brews/3, get_personal_ratings/3, get_personal_favorites/3,
-         get_personal_comments/3,
+         get_personal_comments/3, get_profile/2,
          get_personal_brews/2, get_personal_ratings/2, get_personal_favorites/2,
          get_personal_comments/2, get_personal_queue/2, get_personal_queue/3,
          count_queue/2, count_brews/2, count_ratings/2, count_favorites/2, count_comments/2,
@@ -29,6 +29,7 @@
          terminate/2, code_change/3]).
 
 -include("be_config.hrl").
+-include("couchbeam.hrl").
 
 -define(SERVER, ?MODULE). 
 
@@ -75,6 +76,9 @@ update_profile(Pid, Key, Value) when is_binary(Key), is_binary(Value) ->
 
 get_profile(Pid) ->
     gen_server:call(Pid, get_profile).
+
+get_profile(Pid, UserName) ->
+    gen_server:call(Pid, {get_profile, UserName}).
 
 get_profile_image_url(Pid) ->
     gen_server:call(Pid, get_profile_image_url).
@@ -196,6 +200,7 @@ logout(Pid) ->
 %% @end
 %%--------------------------------------------------------------------
 init([]) ->
+    %Connection = couchbeam_server:start_connection_link(#couchdb_params{host="beerenthusiasts.cloudant.com", username="beerenthusiasts", password="temp4now"}),
     Connection = couchbeam_server:start_connection_link(),   
     ProfilesDatabase = couchbeam_db:open_or_create(Connection, "be_profiles"),
     RecipesDatabase = couchbeam_db:open_or_create(Connection, "be_recipes"),
@@ -204,6 +209,7 @@ init([]) ->
     {ok, #state{couch_connection=Connection, profiles_database=ProfilesDatabase, recipes_database=RecipesDatabase, comments_database=CommentsDatabase}};
 init([UserName]) ->
     Connection = couchbeam_server:start_connection_link(),   
+    %Connection = couchbeam_server:start_connection_link(#couchdb_params{host="beerenthusiasts.cloudant.com", username="beerenthusiasts", password="temp4now"}),   
     ProfilesDatabase = couchbeam_db:open_or_create(Connection, "be_profiles"),
     RecipesDatabase = couchbeam_db:open_or_create(Connection, "be_recipes"),
     CommentsDatabase = couchbeam_db:open_or_create(Connection, "be_comments"),
@@ -240,8 +246,14 @@ handle_call({update_profile, Key, Value}, _From, State) ->
     UpdatedProfile = couchbeam_doc:extend(Key, Value, State#state.profile),
     couchbeam_db:save_doc(State#state.profiles_database, UpdatedProfile),
     {reply, ok, State#state{profile=UpdatedProfile}};
+
 handle_call(get_profile, _From, State) ->
     {reply, {ok, State#state.profile}, State};
+handle_call({get_profile, UserName}, _From, State) ->
+    {ok, EmailAddress} = be_db_interface:get_email_address(UserName),
+    Profile = couchbeam_db:open_doc(State#state.profiles_database, EmailAddress),    
+    {reply, {ok, Profile}, State};
+
 handle_call(get_profile_image_url, _From, State) ->
     {reply, {ok, State#state.profile_image_url}, State};
 
