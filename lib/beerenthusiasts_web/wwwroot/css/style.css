@@ -86,7 +86,13 @@ p {
 .text_block {
     padding-top: 1em;
     padding-bottom: 1em;
+    width: 36em;
 }
+
+.text_block p {
+    font-size: 1.2em;
+}
+
 #stats_and_ads {
     margin-top: 1em;
     color: #afafaf;
@@ -115,6 +121,7 @@ padding:0px;
 h3 {
     color: #ad610b;
     margin-bottom: 0em;
+    font-weight: bold;
 }
 
 .color_black {
