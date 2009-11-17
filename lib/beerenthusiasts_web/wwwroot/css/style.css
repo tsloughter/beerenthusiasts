@@ -93,6 +93,18 @@ p {
     font-size: 1.2em;
 }
 
+.text_block li {
+    font-size: 1.2em;
+}
+
+.ui-tabs li {
+    font-size: 1em;
+}
+
+#ratings td {
+    text-align: center;
+}
+
 #stats_and_ads {
     margin-top: 1em;
     color: #afafaf;
