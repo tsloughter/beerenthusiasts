@@ -62,7 +62,7 @@ init([]) ->
                                          ?BE_DB_PASSWORD, ?BE_DB, true)
                            end, lists:seq(1,20)),
     
-    db_interface:init(),
+    be_db_interface:init(),
 
     {ok, #state{}}.
 
