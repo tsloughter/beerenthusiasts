@@ -352,25 +352,25 @@ handle_call(count_favorites, _From, State) ->
 
 handle_call({get_ratings, UserName, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "ratings", "user", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_personal_ratings, Rows}, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "ratings", "user", [{"key", State#state.user_id}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_ratings, UserName, StartDocId, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "ratings", "user", [{"key", UserId}, {"startkey", UserId}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_personal_ratings, StartDocId, Rows}, _From, State) ->
-    {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
+    {ok, Results} = get_view_results(State#state.recipes_database, "ratings", "user", [{"key", State#state.user_id}, {"startkey", State#state.user_id}, {"startkey_docid", StartDocId}, {"limit", Rows}]),
     {reply, Results, State};
 
 handle_call({count_ratings, UserName}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "ratings", [{"key", UserId}]),
+    {ok, Count} = get_view_count(State#state.recipes_database, "ratings", "user", [{"key", UserId}]),
     {reply, Count, State};
 handle_call(count_ratings, _From, State) -> 
-    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "ratings", [{"key", State#state.user_id}]),
+    {ok, Count} = get_view_count(State#state.recipes_database, "ratings", "user", [{"key", State#state.user_id}]),
     {reply, Count, State};
 
 handle_call({add_to_queue, RecipeId}, _From, State) ->

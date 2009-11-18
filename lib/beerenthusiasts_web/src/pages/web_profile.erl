@@ -27,6 +27,22 @@ user_comments() ->
                           [couchbeam_doc:get_value("body", Comment), #br{}]
                   end, Comments).
 
+ratings() ->
+    UserName = wf:get_path_info(),
+    {_, _, _, Ratings} = be_user_server:get_ratings(wf:session(be_user_server), UserName, 4),
+    [#tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                         #tablecell { text=couchbeam_doc:get_value("recipe_name", Rating)}
+                                 end, Ratings)},
+     #tablerow { cells=lists:map(fun(Rating) ->
+                                         #tablecell { body=[
+                                                            #image{image="/beer_rating_big.png"}
+                                                           ]}
+                                 end, Ratings)},
+     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                         Num = couchbeam_doc:get_value("rating", Rating),
+                                         #tablecell { body=lists:map(fun(_) -> #image{image="/beer_rating_yes.png"} end, lists:seq(1, Num)) ++ lists:map(fun(_) -> #image{image="/beer_rating_no.png"} end, lists:seq(1, 4-Num))} 
+                                 end, Ratings)}].    
+
 stats() ->
     UserName = wf:get_path_info(),
     {ok, Profile} = be_user_server:get_profile(wf:session(be_user_server), UserName),
