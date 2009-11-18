@@ -9,6 +9,10 @@
     float: right;
 }
 
+.comment{
+    font-style: italic;
+}
+
 #header {
     height: 100px;
     background-image:url('../header_background.png');

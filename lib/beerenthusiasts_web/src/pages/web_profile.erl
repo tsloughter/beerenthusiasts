@@ -14,8 +14,13 @@ main() ->
 title() ->
     "User Profile".
 
-username() ->
+username() -> 
     wf:get_path_info().
+
+fullname() ->
+    UserName = wf:get_path_info(),
+    {ok, Profile} = be_user_server:get_profile(wf:session(be_user_server), UserName),    
+    couchbeam_doc:get_value("fullname", Profile).
 
 last_logged_in() ->
     "2 hours ago".
@@ -24,7 +29,8 @@ user_comments() ->
     UserName = wf:get_path_info(),
     {_, _, _, Comments} = be_user_server:get_comments(wf:session(be_user_server), UserName, 4),
     lists:flatmap(fun({_, _, Comment}) ->
-                          [couchbeam_doc:get_value("body", Comment), #br{}]
+                          Value = couchbeam_doc:get_value("body", Comment),
+                          [#p{class="comment", body=[Value, #br{}]}]
                   end, Comments).
 
 ratings() ->
@@ -61,35 +67,35 @@ stats() ->
     
     [
      #h3{text="Stats"},
-     #p{},
-     %#strong{},
-     "<strong>",
-     #span{class="color_black", text=couchbeam_doc:get_value("fullname", Profile)},
-     " (", couchbeam_doc:get_value("username", Profile), ") lives in ", couchbeam_doc:get_value("location", Profile)," and has been a member for ", couchbeam_doc:get_value("joined", Profile), "</strong>",
-	   #p{},
-     %<table width="100%">
-     #table{ rows =[
-                    #tablerow { cells=[
-                                       #tablecell { text="BrewQueue" },
-                                       #tablecell { align="right", class="color_black", text=QueueCount }
-                                      ]},
-                    #tablerow { cells=[
-                                       #tablecell { text="Favorites" },
-                                       #tablecell { align="right", class="color_black", text=FavoritesCount }
-                                      ]},
-                    #tablerow { cells=[
-                                       #tablecell { text="Submissions" },
-                                       #tablecell { align="right", class="color_black", text=SubmissionsCount }
-                                      ]},
-                    #tablerow { cells=[
-                                       #tablecell { text="Comments" },
-                                       #tablecell { align="right", class="color_black", text=CommentsCount }
-                                      ]},
-                    #tablerow { cells=[
-                                       #tablecell { text="Ratings" },
-                                       #tablecell { align="right", class="color_black", text=RatingsCount }
-                                      ]}]}
-     ].
+     #p{ body=[
+               %#strong{},
+               "<strong>",
+               #span{class="color_black", text=couchbeam_doc:get_value("fullname", Profile)},
+               " (", couchbeam_doc:get_value("username", Profile), ") lives in ", couchbeam_doc:get_value("location", Profile)," and has been a member for ", couchbeam_doc:get_value("joined", Profile), "</strong>",
+               #p{ body=[
+                         %<table width="100%">
+                         #table{ rows =[
+                                        #tablerow { cells=[
+                                                           #tablecell { text="BrewQueue" },
+                                                           #tablecell { align="right", class="color_black", text=QueueCount }
+                                                          ]},
+                                        #tablerow { cells=[
+                                                           #tablecell { text="Favorites" },
+                                                           #tablecell { align="right", class="color_black", text=FavoritesCount }
+                                                          ]},
+                                        #tablerow { cells=[
+                                                           #tablecell { text="Submissions" },
+                                                           #tablecell { align="right", class="color_black", text=SubmissionsCount }
+                                                          ]},
+                                        #tablerow { cells=[
+                                                           #tablecell { text="Comments" },
+                                                           #tablecell { align="right", class="color_black", text=CommentsCount }
+                                                          ]},
+                                        #tablerow { cells=[
+                                                           #tablecell { text="Ratings" },
+                                                           #tablecell { align="right", class="color_black", text=RatingsCount }
+                                                          ]}]}
+                        ]}]}].
 
 body() ->
     UserName = wf:get_path_info(),

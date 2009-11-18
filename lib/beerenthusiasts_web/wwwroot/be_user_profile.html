@@ -44,7 +44,7 @@
 
     <div class="container">
       <div class="span-12 prepend-3">
-	<h3>[[[page:username()]]]</h3>
+	<h3>[[[page:fullname()]]]</h3>
 	<i>Last logged in [[[page:last_logged_in()]]]</i>
 	<div id="tabs_block" class="text_block">
 
@@ -73,14 +73,12 @@
 	</div>
 
 	<div id="comments_summary" class="text_block">
-	  <h3>Comments By User</h3>
-	  <p>
+	  <h3>Comments By [[[page:fullname()]]]</h3>
       [[[page:user_comments()]]] 
-	  </p>
 	  <span class="right">View All</span>
 	</div>
 	<div id="rating_summary" class="text_block">
-	  <h3>Ratings By User</h3>
+	  <h3>Ratings By [[[page:fullname()]]]</h3>
 	  <p>
 	    <table id="ratings">
         [[[page:ratings()]]]
