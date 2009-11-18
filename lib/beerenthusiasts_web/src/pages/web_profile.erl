@@ -33,7 +33,7 @@ ratings() ->
     [#tablerow { cells=lists:map(fun({_, _, Rating}) ->
                                          #tablecell { text=couchbeam_doc:get_value("recipe_name", Rating)}
                                  end, Ratings)},
-     #tablerow { cells=lists:map(fun(Rating) ->
+     #tablerow { cells=lists:map(fun(_Rating) ->
                                          #tablecell { body=[
                                                             #image{image="/beer_rating_big.png"}
                                                            ]}
