@@ -12,7 +12,7 @@ main() ->
     end.
 
 title() ->
-    "web_queue".
+    "User Queue".
 
 body() ->
     UserName = wf:get_path_info(),

@@ -5,7 +5,8 @@
   {modules, [beerenthusiasts_web_app, 
              web_index,
              web_queue,            
-             web_profile
+             web_profile,
+             web_comments
    ]},             
   {registered,[beerenthusiasts_web]},        
   {applications, [kernel, stdlib, sasl, gas, ewlib, beerenthusiasts]}

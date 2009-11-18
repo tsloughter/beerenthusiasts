@@ -28,10 +28,11 @@ last_logged_in() ->
 user_comments() ->
     UserName = wf:get_path_info(),
     {_, _, _, Comments} = be_user_server:get_comments(wf:session(be_user_server), UserName, 4),
+    [{FirstDocId, _, _} | _] = Comments,
     lists:flatmap(fun({_, _, Comment}) ->
                           Value = couchbeam_doc:get_value("body", Comment),
                           [#p{class="comment", body=[Value, #br{}]}]
-                  end, Comments).
+                  end, Comments)++[#panel{class="right", body=[#link{text="View All", url="/web/comments/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}]}].
 
 ratings() ->
     UserName = wf:get_path_info(),
