@@ -37,25 +37,29 @@ user_comments() ->
 ratings() ->
     UserName = wf:get_path_info(),
     {_, _, _, Ratings} = be_user_server:get_ratings(wf:session(be_user_server), UserName, 4),
-    [#tablerow { cells=lists:map(fun({_, _, Rating}) ->
-                                         #tablecell { text=couchbeam_doc:get_value("recipe_name", Rating)}
-                                 end, Ratings)},
-     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
-                                         #tablecell { body=[
-                                                            case couchbeam_doc:get_value("color", Rating) of
-                                                                <<"light">> ->
-                                                                    #image{image="/beer_rating_big.png"};
-                                                                <<"medium">> ->
-                                                                    #image{image="/beer_rating_big.png"};
-                                                                <<"dark">> ->
-                                                                    #image{image="/beer_rating_big.png"}
-                                                            end
-                                                           ]}
-                                 end, Ratings)},
-     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
-                                         Num = couchbeam_doc:get_value("rating", Rating),
-                                         #tablecell { body=lists:map(fun(_) -> #image{image="/beer_rating_yes.png"} end, lists:seq(1, Num)) ++ lists:map(fun(_) -> #image{image="/beer_rating_no.png"} end, lists:seq(1, 4-Num))} 
-                                 end, Ratings)}].    
+    [{FirstDocId, _, _} | _] = Ratings,
+    [#p{body=[
+             #table{id="ratings", rows=
+                    [#tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                                         #tablecell { text=couchbeam_doc:get_value("recipe_name", Rating)}
+                                                 end, Ratings)},
+                     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                                         #tablecell { body=[
+                                                                            case couchbeam_doc:get_value("color", Rating) of
+                                                                                <<"light">> ->
+                                                                                    #image{image="/beer_rating_big.png"};
+                                                                                <<"medium">> ->
+                                                                                    #image{image="/beer_rating_big.png"};
+                                                                                <<"dark">> ->
+                                                                                    #image{image="/beer_rating_big.png"}
+                                                                            end
+                                                                           ]}
+                                                 end, Ratings)},
+                     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                                         Num = couchbeam_doc:get_value("rating", Rating),
+                                                         #tablecell { body=lists:map(fun(_) -> #image{image="/beer_rating_yes.png"} end, lists:seq(1, Num)) ++ lists:map(fun(_) -> #image{image="/beer_rating_no.png"} end, lists:seq(1, 4-Num))} 
+                                                 end, Ratings)}]}]}, 
+    #panel{class="right", body=[#link{text="View All", url="/web/ratings/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}]}].    
 
 stats() ->
     UserName = wf:get_path_info(),
