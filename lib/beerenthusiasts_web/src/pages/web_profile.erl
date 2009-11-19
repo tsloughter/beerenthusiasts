@@ -23,8 +23,17 @@ fullname() ->
     couchbeam_doc:get_value("fullname", Profile).
 
 last_logged_in() ->
-    "2 hours ago".
-
+    UserName = wf:get_path_info(),
+    {ok, Seconds} = be_user_server:get_last_logged_in(UserName),                        
+    {Days, {H, M, S}} = calendar:seconds_to_daystime(Seconds),
+    R = lists:flatmap(fun({Type, Amount}) ->
+                            if
+                                Amount == 0 -> "";                            
+                                true -> lists:flatten(io_lib:format("~p ~s ", [Amount, Type]))
+                            end
+                    end, [{"days", Days}, {"hours", H}, {"minutes", M}, {"seconds", S}]),
+    R++"ago".
+                        
 user_comments() ->
     UserName = wf:get_path_info(),
     {_, _, _, Comments} = be_user_server:get_comments(wf:session(be_user_server), UserName, 4),

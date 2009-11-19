@@ -10,18 +10,22 @@
 
 %% API
 -compile(export_all).
-
+ 
 -include_lib("nitrogen/include/wf.inc").
 
 init() ->
     mysql:prepare(add_user_query, 
                   <<"INSERT INTO users (username, email, fullname, password, date_joined, last_logged_in) VALUES (?, ?, ?, PASSWORD(?), DATE(NOW()), NOW())">>),
+
+
+    mysql:prepare(get_last_logged_in_query, 
+                  <<"SELECT round(now() - last_logged_in, 0) FROM users WHERE username=? OR email=?">>),    
     
     mysql:prepare(validate_user_query, 
                   <<"SELECT 1 FROM users WHERE (username=? OR email=?) AND password=PASSWORD(?)">>),
 
     mysql:prepare(update_last_logged_in_query, 
-                  <<"UPDATE users SET last_logged_in=datetime()">>),
+                  <<"UPDATE users SET last_logged_in=now() WHERE username=?">>),
 
     %%%%
     %%% Need to remove from friends and other tables....
@@ -90,7 +94,7 @@ validate_user(Username, Password) ->
 update_last_logged_in(Username) ->
     mysql:transaction(p1,
                       fun() ->
-                              mysql:execute(p1, update_last_logged_query, [Username])
+                              mysql:execute(p1, update_last_logged_in_query, [Username])
                       end).
 
 delete_user(Username) ->
@@ -131,6 +135,23 @@ is_email_used(Email) ->
             end;
         _ ->
             true
+    end.
+
+get_last_logged_in(UserName) ->
+    case mysql:transaction(p1,
+                           fun() ->
+                                   mysql:execute(p1, get_last_logged_in_query, [UserName, UserName])
+                           end) of
+        {atomic, {data, MySQLResults}} ->
+            Rows = mysql:get_result_rows(MySQLResults),
+            if
+                length(Rows) == 1 ->
+                   {ok, hd(hd(Rows))};
+                true ->
+                    {error, unknown_user}
+            end;
+        _ ->
+            {error, unknown_user}
     end.
 
 get_email_address(Username) ->

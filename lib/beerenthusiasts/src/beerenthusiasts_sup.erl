@@ -40,6 +40,7 @@ login(UserName, Password) ->
         {ok, valid} ->
             case supervisor:start_child(?SERVER, {{user_sup, UserName}, {be_user_sup, start_link, []}, transient, 2000, supervisor, [be_user_sup]}) of
                 {ok, Pid} ->
+                    be_db_interface:update_last_logged_in(UserName),
                     be_user_server:start(Pid, UserName);
                 _ ->
                     ?ERROR_MSG("Unable to start ~p supervisor", [UserName]),
