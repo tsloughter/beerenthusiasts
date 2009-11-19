@@ -19,7 +19,7 @@ init() ->
 
 
     mysql:prepare(get_last_logged_in_query, 
-                  <<"SELECT round(now() - last_logged_in, 0) FROM users WHERE username=? OR email=?">>),
+                  <<"SELECT time_to_sec(timediff(now(), last_logged_in)) FROM users WHERE username=? OR email=?">>),
     
     mysql:prepare(get_days_member_for_query, 
                   <<"SELECT date(now()) - date_joined FROM users WHERE username=? OR email=?">>),
