@@ -29,11 +29,16 @@ last_logged_in() ->
     R = lists:flatmap(fun({Type, Amount}) ->
                             if
                                 Amount == 0 -> "";                            
-                                true -> lists:flatten(io_lib:format("~p ~s ", [Amount, Type]))
+                                true ->
+                                    if Amount == 1 ->
+                                            lists:flatten(io_lib:format("~p ~s ", [Amount, Type]));
+                                       true ->
+                                            lists:flatten(io_lib:format("~p ~ss ", [Amount, Type]))
+                                    end
                             end
-                    end, [{"days", Days}, {"hours", H}, {"minutes",
+                      end, [{"day", Days}, {"hour", H}, {"minute", 
                                                          if
-                                                             Days ==0 ; H == 0 -> M+1;
+                                                             Days == 0 , H == 0 -> M+1;
                                                              true -> 0
                                                          end}]),
     R++"ago".
