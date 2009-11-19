@@ -14,7 +14,7 @@
 -export([start_link/1, start/2, start_link/0, start/1, upload_profile_image/2, update_profile/2,
          logout/1, get_queue/3, get_brews/3, get_ratings/3, get_favorites/3, get_comments/3,
          get_queue/4, get_personal_brews/3, get_personal_ratings/3, get_personal_favorites/3,
-         get_personal_comments/3, get_profile/2, get_last_logged_in/1,
+         get_personal_comments/3, get_profile/2, get_last_logged_in/1, get_days_member_for/1,
          get_personal_brews/2, get_personal_ratings/2, get_personal_favorites/2,
          get_personal_comments/2, get_personal_queue/2, get_personal_queue/3,
          count_queue/2, count_brews/2, count_ratings/2, count_favorites/2, count_comments/2,
@@ -76,6 +76,9 @@ update_profile(Pid, Key, Value) when is_binary(Key), is_binary(Value) ->
 
 get_last_logged_in(UserName) ->
     be_db_interface:get_last_logged_in(UserName).
+
+get_days_member_for(UserName) ->
+    be_db_interface:get_days_member_for(UserName).
 
 get_profile(Pid) ->
     gen_server:call(Pid, get_profile).

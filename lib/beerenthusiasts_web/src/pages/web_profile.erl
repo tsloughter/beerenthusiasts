@@ -75,7 +75,22 @@ ratings() ->
     #panel{class="right", body=[#link{text="View All", url="/web/ratings/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}].    
 
 stats() ->
-    UserName = wf:get_path_info(),
+    UserName = wf:get_path_info(), 
+
+    {ok, Days} = be_user_server:get_days_member_for(UserName),                        
+    MemberSince = if
+                      Days == 0 ->
+                          "1 day";
+                      true ->
+                          Months = Days/30,
+                          if
+                              Months < 1 ->
+                                  lists:flatten(io_lib:format("~p days", [Days]));
+                              true ->
+                                  lists:flatten(io_lib:format("~p months", [round(Months)]))
+                          end
+                  end,
+    
     {ok, Profile} = be_user_server:get_profile(wf:session(be_user_server), UserName),
     QueueCount = io_lib:format("~p", [be_user_server:count_queue(wf:session(be_user_server), UserName)]),
     FavoritesCount = io_lib:format("~p", [be_user_server:count_favorites(wf:session(be_user_server), UserName)]),
@@ -89,7 +104,7 @@ stats() ->
                %#strong{},
                "<strong>",
                #span{class="color_black", text=couchbeam_doc:get_value("fullname", Profile)},
-               " (", couchbeam_doc:get_value("username", Profile), ") lives in ", couchbeam_doc:get_value("location", Profile)," and has been a member for ", couchbeam_doc:get_value("joined", Profile), "</strong>",
+               " (", couchbeam_doc:get_value("username", Profile), ") lives in ", couchbeam_doc:get_value("location", Profile)," and has been a member for ", MemberSince, "</strong>",
                #p{ body=[
                          %<table width="100%">
                          #table{ rows =[

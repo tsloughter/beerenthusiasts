@@ -19,7 +19,10 @@ init() ->
 
 
     mysql:prepare(get_last_logged_in_query, 
-                  <<"SELECT round(now() - last_logged_in, 0) FROM users WHERE username=? OR email=?">>),    
+                  <<"SELECT round(now() - last_logged_in, 0) FROM users WHERE username=? OR email=?">>),
+    
+    mysql:prepare(get_days_member_for_query, 
+                  <<"SELECT date(now()) - date_joined FROM users WHERE username=? OR email=?">>),
     
     mysql:prepare(validate_user_query, 
                   <<"SELECT 1 FROM users WHERE (username=? OR email=?) AND password=PASSWORD(?)">>),
@@ -141,6 +144,23 @@ get_last_logged_in(UserName) ->
     case mysql:transaction(p1,
                            fun() ->
                                    mysql:execute(p1, get_last_logged_in_query, [UserName, UserName])
+                           end) of
+        {atomic, {data, MySQLResults}} ->
+            Rows = mysql:get_result_rows(MySQLResults),
+            if
+                length(Rows) == 1 ->
+                   {ok, hd(hd(Rows))};
+                true ->
+                    {error, unknown_user}
+            end;
+        _ ->
+            {error, unknown_user}
+    end.
+
+get_days_member_for(UserName) ->
+    case mysql:transaction(p1,
+                           fun() ->
+                                   mysql:execute(p1, get_days_member_for_query, [UserName, UserName])
                            end) of
         {atomic, {data, MySQLResults}} ->
             Rows = mysql:get_result_rows(MySQLResults),
