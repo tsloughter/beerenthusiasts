@@ -25,13 +25,17 @@ fullname() ->
 last_logged_in() ->
     UserName = wf:get_path_info(),
     {ok, Seconds} = be_user_server:get_last_logged_in(UserName),                        
-    {Days, {H, M, S}} = calendar:seconds_to_daystime(Seconds),
+    {Days, {H, M, _S}} = calendar:seconds_to_daystime(Seconds),
     R = lists:flatmap(fun({Type, Amount}) ->
                             if
                                 Amount == 0 -> "";                            
                                 true -> lists:flatten(io_lib:format("~p ~s ", [Amount, Type]))
                             end
-                    end, [{"days", Days}, {"hours", H}, {"minutes", M}, {"seconds", S}]),
+                    end, [{"days", Days}, {"hours", H}, {"minutes",
+                                                         if
+                                                             Days ==0 ; H == 0 -> M+1;
+                                                             true -> 0
+                                                         end}]),
     R++"ago".
                         
 user_comments() ->
