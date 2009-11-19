@@ -21,7 +21,7 @@ body() ->
 
     Queue = case StartDocId of
                 [] ->
-                    be_user_server:get_comments(wf:session(be_user_server), UserName, 2);
+                    be_user_server:get_comments(wf:session(be_user_server), UserName, Rows);
                 _ ->
                     be_user_server:get_comments(wf:session(be_user_server), UserName, StartDocId, Rows)
             end,

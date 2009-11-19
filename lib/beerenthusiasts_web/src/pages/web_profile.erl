@@ -32,7 +32,7 @@ user_comments() ->
     lists:flatmap(fun({_, _, Comment}) ->
                           Value = couchbeam_doc:get_value("body", Comment),
                           [#p{class="comment", body=[Value, #br{}]}]
-                  end, Comments)++[#panel{class="right", body=[#link{text="View All", url="/web/comments/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}]}].
+                  end, Comments)++[#panel{class="right", body=[#link{text="View All", url="/web/comments/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}].
 
 ratings() ->
     UserName = wf:get_path_info(),
@@ -59,7 +59,7 @@ ratings() ->
                                                          Num = couchbeam_doc:get_value("rating", Rating),
                                                          #tablecell { body=lists:map(fun(_) -> #image{image="/beer_rating_yes.png"} end, lists:seq(1, Num)) ++ lists:map(fun(_) -> #image{image="/beer_rating_no.png"} end, lists:seq(1, 4-Num))} 
                                                  end, Ratings)}]}]}, 
-    #panel{class="right", body=[#link{text="View All", url="/web/ratings/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}]}].    
+    #panel{class="right", body=[#link{text="View All", url="/web/ratings/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}].    
 
 stats() ->
     UserName = wf:get_path_info(),
@@ -81,24 +81,24 @@ stats() ->
                          %<table width="100%">
                          #table{ rows =[
                                         #tablerow { cells=[
-                                                           #tablecell { text="BrewQueue" },
-                                                           #tablecell { align="right", class="color_black", text=QueueCount }
+                                                           #tablecell { text="Brew Queue", style="color: #9a9a9a;" },
+                                                           #tablecell { align="left", class="color_black", text=QueueCount }
                                                           ]},
                                         #tablerow { cells=[
-                                                           #tablecell { text="Favorites" },
-                                                           #tablecell { align="right", class="color_black", text=FavoritesCount }
+                                                           #tablecell { text="Favorites", style="color: #9a9a9a;" },
+                                                           #tablecell { align="left", class="color_black", text=FavoritesCount }
                                                           ]},
                                         #tablerow { cells=[
-                                                           #tablecell { text="Submissions" },
-                                                           #tablecell { align="right", class="color_black", text=SubmissionsCount }
+                                                           #tablecell { text="Submissions", style="color: #9a9a9a;" },
+                                                           #tablecell { align="left", class="color_black", text=SubmissionsCount }
                                                           ]},
                                         #tablerow { cells=[
-                                                           #tablecell { text="Comments" },
-                                                           #tablecell { align="right", class="color_black", text=CommentsCount }
+                                                           #tablecell { text="Comments", style="color: #9a9a9a;" },
+                                                           #tablecell { align="left", class="color_black", text=CommentsCount }
                                                           ]},
                                         #tablerow { cells=[
-                                                           #tablecell { text="Ratings" },
-                                                           #tablecell { align="right", class="color_black", text=RatingsCount }
+                                                           #tablecell { text="Ratings", style="color: #9a9a9a;" },
+                                                           #tablecell { align="left", class="color_black", text=RatingsCount }
                                                           ]}]}
                         ]}]}].
 

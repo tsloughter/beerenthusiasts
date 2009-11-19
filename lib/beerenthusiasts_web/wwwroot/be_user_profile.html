@@ -28,76 +28,75 @@
   <body>
     <div id="wrapper">
       <div id="header">
-	<div class="site">
-	  <div class="container">
-	    <div class="span-18 prepend-3 append-3 last">
-	      <a href="http://www.beerenthusiasts.org"><img id="logo" src="/logo.png"></a>
-	      <div id="header_text">
-		<ul class="nav">
-		  <li><a href="http://blog.beerenthusiasts.org/">Blog</a></li>
-		</ul>
+	      <div class="site">
+	        <div class="container">
+	          <div class="span-22 prepend-1 append-1 last">
+	            <a href="http://www.beerenthusiasts.org"><img id="logo" src="/logo.png"></a>
+	            <div id="header_text">
+		            <ul class="nav">
+		              <li><a href="http://blog.beerenthusiasts.org/">Blog</a></li>
+		            </ul>
+	            </div>
+	          </div>
+	        </div>
 	      </div>
-	    </div>
-	  </div>
-	</div>
       </div>
 
-    <div class="container">
-      <div class="span-12 prepend-3">
-	<h3>[[[page:fullname()]]]</h3>
-	<i>Last logged in [[[page:last_logged_in()]]]</i>
-	<div id="tabs_block" class="text_block">
+      <div class="container">
+        <div class="span-15 prepend-2">
+	        <h3>[[[page:fullname()]]]</h3>
+	        <i>Last logged in [[[page:last_logged_in()]]]</i>
+	        <div id="tabs_block" class="text_block">
+            
+	          <div id="tabs">
+	            <ul>
+                <li><a href="#fragment-1"><span>One</span></a></li>
+                <li><a href="#fragment-2"><span>Two</span></a></li>
+                <li><a href="#fragment-3"><span>Three</span></a></li>
+	            </ul>
+	            <div id="fragment-1">
+                <p>First tab is active by default:</p>
+                <pre><code>$('#example').tabs();</code></pre>
+	            </div>
+	          <div id="fragment-2">
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+	          </div>
+	          <div id="fragment-3">
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
+	          </div>
+	        </div>
 
-	  <div id="tabs">
-	    <ul>
-              <li><a href="#fragment-1"><span>One</span></a></li>
-              <li><a href="#fragment-2"><span>Two</span></a></li>
-              <li><a href="#fragment-3"><span>Three</span></a></li>
-	    </ul>
-	    <div id="fragment-1">
-              <p>First tab is active by default:</p>
-              <pre><code>$('#example').tabs();</code></pre>
-	    </div>
-	    <div id="fragment-2">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-	    </div>
-	    <div id="fragment-3">
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-              Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.
-	    </div>
-	  </div>
-
-	  <span class="right">View All</span>
-	</div>
-
-	<div id="comments_summary" class="text_block">
-	  <h3>Comments By [[[page:fullname()]]]</h3>
-      [[[page:user_comments()]]] 
-	</div>
-	<div id="rating_summary" class="text_block">
-	  <h3>Ratings By [[[page:fullname()]]]</h3>
+	        <span class="right">View All</span>
+	      </div>
+        
+	      <div id="comments_summary" class="text_block">
+	        <h3>Comments By [[[page:fullname()]]]</h3>
+          [[[page:user_comments()]]] 
+	      </div>
+	      <div id="rating_summary" class="text_block">
+	        <h3>Ratings By [[[page:fullname()]]]</h3>
         [[[page:ratings()]]]
-	</div>
-
+	      </div>
+        
       </div>
-      <div class="span-6 append-3 last">
-	Search <input type="text" size="15" /> <img src="/go.png" align="MIDDLE" width="30" height="20" border="0" id="go"/>
-	
-	<div class="container">
-	  <div class="prepend-2 span-4" id="stats_and_ads">
-      [[[page:stats()]]]
-	  </div>
-	</div>
+      <div class="span-6 append-1 last">
+	      <input class="search" type="text" /> <img src="/go.png" align="MIDDLE" width="30" height="20" border="0" id="go"/>
+	      
+	      <div class="container">
+	        <div class="prepend-1 span-4" id="stats_and_ads">
+            [[[page:stats()]]]
+	        </div>
+	      </div>
       </div>
     </div>
-
+    
     <div class="push">
     </div>
-
-</div>
-
+    
+    </div>
+    
 <div id="footer">
   <div class="site">	  
 	  <div id="footer_bottom">

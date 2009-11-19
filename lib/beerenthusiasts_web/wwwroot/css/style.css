@@ -5,12 +5,18 @@
     width:72em;
 }
 
+input.search{
+    font-size: 18px;
+    width: 175px;
+}
+
 .right {
     float: right;
 }
 
 .comment{
     font-style: italic;
+    font-family: bitstream-vera-sans;
 }
 
 #header {
@@ -84,13 +90,13 @@ ul.nav li {
 }
 
 p {
-    margin-top: 1em;
+    margin-top: .5em;
 }
 
 .text_block {
     padding-top: 1em;
     padding-bottom: 1em;
-    width: 36em;
+    /*width: 36em;*/
 }
 
 .text_block p {
@@ -138,6 +144,7 @@ h3 {
     color: #ad610b;
     margin-bottom: 0em;
     font-weight: bold;
+    font-family: sans-serif;
 }
 
 .color_black {
