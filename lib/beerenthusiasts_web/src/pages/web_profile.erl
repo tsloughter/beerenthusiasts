@@ -42,42 +42,80 @@ last_logged_in() ->
                                                              true -> 0
                                                          end}]),
     R++"ago".
-                        
+
+queue() ->
+    UserName = wf:get_path_info(),
+    case be_user_server:get_queue(wf:session(be_user_server), UserName, 4) of
+        {_, _, _, Queue} ->
+            [{FirstDocId, _, _} | _] = Queue,
+            "";
+        [] ->
+            ""
+    end.
+    
+submissions() ->
+    UserName = wf:get_path_info(),
+    case be_user_server:get_brews(wf:session(be_user_server), UserName, 4) of
+        {_, _, _, Submissions} ->
+            [{_FirstDocId, _, _} | _] = Submissions,
+            "";
+        [] ->
+            ""
+    end.                                     
+
+favorites() ->
+    UserName = wf:get_path_info(),
+    case be_user_server:get_favorites(wf:session(be_user_server), UserName, 4) of
+        {_, _, _, Favorites} ->
+            [{FirstDocId, _, _} | _] = Favorites,
+            "";
+        [] ->
+            ""
+    end.
+
 user_comments() ->
     UserName = wf:get_path_info(),
-    {_, _, _, Comments} = be_user_server:get_comments(wf:session(be_user_server), UserName, 4),
-    [{FirstDocId, _, _} | _] = Comments,
-    lists:flatmap(fun({_, _, Comment}) ->
-                          Value = couchbeam_doc:get_value("body", Comment),
-                          [#p{class="comment", body=[Value, #br{}]}]
-                  end, Comments)++[#panel{class="right", body=[#link{text="View All", url="/web/comments/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}].
+    case be_user_server:get_comments(wf:session(be_user_server), UserName, 4) of
+        {_, _, _, Comments} ->
+            [{FirstDocId, _, _} | _] = Comments,            
+            lists:flatmap(fun({_, _, Comment}) ->
+                                  Value = couchbeam_doc:get_value("body", Comment),
+                                  [#p{class="comment", body=[Value, #br{}]}]
+                          end, Comments)++[#panel{class="right", body=[#link{text="View All", url="/web/comments/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}];
+        [] ->
+            ""
+    end.
 
 ratings() ->
     UserName = wf:get_path_info(),
-    {_, _, _, Ratings} = be_user_server:get_ratings(wf:session(be_user_server), UserName, 4),
-    [{FirstDocId, _, _} | _] = Ratings,
-    [#p{body=[
-             #table{id="ratings", rows=
-                    [#tablerow { cells=lists:map(fun({_, _, Rating}) ->
-                                                         #tablecell { text=couchbeam_doc:get_value("recipe_name", Rating)}
-                                                 end, Ratings)},
-                     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
-                                                         #tablecell { body=[
-                                                                            case couchbeam_doc:get_value("color", Rating) of
-                                                                                <<"light">> ->
-                                                                                    #image{image="/beer_rating_big.png"};
-                                                                                <<"medium">> ->
-                                                                                    #image{image="/beer_rating_big.png"};
-                                                                                <<"dark">> ->
-                                                                                    #image{image="/beer_rating_big.png"}
-                                                                            end
-                                                                           ]}
-                                                 end, Ratings)},
-                     #tablerow { cells=lists:map(fun({_, _, Rating}) ->
-                                                         Num = couchbeam_doc:get_value("rating", Rating),
-                                                         #tablecell { body=lists:map(fun(_) -> #image{image="/beer_rating_yes.png"} end, lists:seq(1, Num)) ++ lists:map(fun(_) -> #image{image="/beer_rating_no.png"} end, lists:seq(1, 4-Num))} 
-                                                 end, Ratings)}]}]}, 
-    #panel{class="right", body=[#link{text="View All", url="/web/ratings/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}].    
+    case be_user_server:get_ratings(wf:session(be_user_server), UserName, 4) of
+        {_, _, _, Ratings} ->
+            [{FirstDocId, _, _} | _] = Ratings,
+            [#p{body=[
+                      #table{id="ratings", rows=
+                             [#tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                                                  #tablecell { text=couchbeam_doc:get_value("recipe_name", Rating)}
+                                                          end, Ratings)},
+                              #tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                                                  #tablecell { body=[
+                                                                                     case couchbeam_doc:get_value("color", Rating) of
+                                                                                         <<"light">> ->
+                                                                                             #image{image="/beer_rating_big.png"};
+                                                                                         <<"medium">> ->
+                                                                                             #image{image="/beer_rating_big.png"};
+                                                                                         <<"dark">> ->
+                                                                                             #image{image="/beer_rating_big.png"}
+                                                                                     end
+                                                                                    ]}
+                                                          end, Ratings)},
+                              #tablerow { cells=lists:map(fun({_, _, Rating}) ->
+                                                                  Num = couchbeam_doc:get_value("rating", Rating),
+                                                                  #tablecell { body=lists:map(fun(_) -> #image{image="/beer_rating_yes.png"} end, lists:seq(1, Num)) ++ lists:map(fun(_) -> #image{image="/beer_rating_no.png"} end, lists:seq(1, 4-Num))} 
+                                                          end, Ratings)}]}]}, 
+             #panel{class="right", body=[#link{text="View All", url="/web/ratings/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=10"}]}];
+        [] ->
+            ""
+    end.
 
 stats() ->
     UserName = wf:get_path_info(), 
