@@ -132,20 +132,50 @@ p {
     color: #322e23;
 }
 
+.color_grey {
+    color: #b0aa9c;
+}
+
 #stats_and_ads th, #stats_and_ads td, #stats_and_ads caption {
 padding:0px;
+}
+
+.cycle_listing { 
+                 height: 3.4em;
+                 padding: 0.9em;
+                 background-image:url('../cycle_yellow.png');
+                 background-repeat:repeat-x;
+ }
+
+.cycle_listing_right 
+{
+  float:right;
+  width:27em;
+}
+
+.grey { 
+        background-image:url('../cycle_gray.png');
+        background-repeat:repeat-x;
+
+}
+
+.ui-tabs .ui-tabs-panel {
+                          padding:0 !important;
+                          width: 32em !important;
 }
 
 .push {
     height: 300px;
 }
 
-h3 {
+h3, h4, h5 {
     color: #ad610b;
     margin-bottom: 0em;
     font-weight: bold;
     font-family: sans-serif;
 }
+
+
 
 .color_black {
     color:black;
