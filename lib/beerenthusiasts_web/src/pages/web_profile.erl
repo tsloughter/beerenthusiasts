@@ -201,42 +201,50 @@ get_queue_table(Beers) ->
     element(1, lists:mapfoldl(fun({DocId, _Key, Doc}, Count) ->
                                       QueueCount = be_user_server:count_number_people_with_beer_in_queue(wf:session(be_user_server), DocId) - 1,
                                       Name = couchbeam_doc:get_value("name", Doc),
-                                      if
-                                          QueueCount > 1 ->
-                                              {get_beer_table_listing(Name, QueueCount, "other people have this in their Queue"), Count+1};
-                                          true ->
-                                              {get_beer_table_listing(Name, QueueCount, "other person has this in their Queue"), Count+1}
-                                      end
+                                      BeerType = couchbeam_doc:get_value("style", Doc, ""),
+                                      Type = if
+                                                 QueueCount == 0 ->
+                                                     "other people have this in their Queue";
+                                                 QueueCount > 1 ->
+                                                    "other people have this in their Queue";
+                                                 true ->
+                                                     "other person has this in their Queue"
+                                             end,
+                                      {get_beer_table_listing(Name, Count, BeerType, QueueCount, Type), Count+1}
                               end, 0, Beers)).
 
 get_submissions_table(Beers) ->    
     element(1, lists:mapfoldl(fun({DocId, _Key, Doc}, Count) ->
                                       QueueCount = be_user_server:count_number_people_with_beer_in_queue(wf:session(be_user_server), DocId),
                                       Name = couchbeam_doc:get_value("name", Doc),
-                                      if
-                                          QueueCount == 0 ->                            
-                                              {get_beer_table_listing(Name, QueueCount, "people have this in their Queue"), Count+1};
-                                          QueueCount > 1 ->                                              
-                                              {get_beer_table_listing(Name, QueueCount, "people have this in their Queue"), Count+1};
-                                          true ->
-                                              {get_beer_table_listing(Name, QueueCount, "person has this in their Queue"), Count+1}
-                                      end
-                              end, 0, Beers)).
+                                      BeerType = couchbeam_doc:get_value("style", Doc, ""),
+                                      Type = if
+                                                 QueueCount == 0 ->                            
+                                                     "people have this in their Queue";
+                                                 QueueCount > 1 ->  
+                                                     "people have this in their Queue";
+                                                 true ->
+                                                     "person has this in their Queue"
+                                             end,
+                                      {get_beer_table_listing(Name, Count, BeerType, QueueCount, Type), Count+1}
+                                 end, 0, Beers)).
 
 get_favorites_table(Beers) ->    
     element(1, lists:mapfoldl(fun({DocId, _Key, Doc}, Count) ->
                                       FavoritesCount = be_user_server:count_number_people_with_beer_in_favorites(wf:session(be_user_server), DocId),
                                       Name = couchbeam_doc:get_value("name", Doc),
-                                      if
-                                          FavoritesCount > 1 ->
-                                              {get_beer_table_listing(Name, FavoritesCount, "other people have this in their Favorites"), Count+1};
-                                          true ->
-                                              {get_beer_table_listing(Name, FavoritesCount, "person has this in their Favorites"), Count+1}
-                                      end
+                                      BeerType = couchbeam_doc:get_value("style", Doc, ""),
+                                      Type = if
+                                                 FavoritesCount > 1 ->
+                                                     "other people have this in their Favorites";
+                                                 true ->
+                                                     "person has this in their Favorites"
+                                             end,
+                                      {get_beer_table_listing(Name, Count, BeerType, FavoritesCount, Type), Count+1}
                               end, 0, Beers)).
 
-get_beer_table_listing(Name, Count, Type) ->
-    #panel{class=if Count rem 2 == 0 ->
+get_beer_table_listing(Name, Color, BeerType, Count, Type) ->
+    #panel{class=if Color rem 2 == 0 ->
                          "cycle_listing";
                      true ->
                           "grey cycle_listing"
@@ -247,7 +255,7 @@ get_beer_table_listing(Name, Count, Type) ->
                               #h4{text=Name},
                               #panel{class="color_grey",
                                      body=[
-                                           "doing it"]},
+                                           BeerType]},
                               #panel{class="right color_grey",
                                      body=[ 
                                              "<strong>"++ io_lib:format("~p ", [Count]) ++"</strong>"++Type]}
