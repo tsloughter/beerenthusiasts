@@ -46,9 +46,12 @@ last_logged_in() ->
 queue() ->
     UserName = wf:get_path_info(),
     case be_user_server:get_queue(wf:session(be_user_server), UserName, 4) of
-        {_, _, _, Queue} ->
-            [{FirstDocId, _, _} | _] = Queue,
+        {error, not_found} ->
             "";
+        {_, _, _, []} ->
+            "";
+        {_, _, _, Queue} ->
+            get_beer_table_listing(Queue);
         [] ->
             ""
     end.
@@ -56,9 +59,12 @@ queue() ->
 submissions() ->
     UserName = wf:get_path_info(),
     case be_user_server:get_brews(wf:session(be_user_server), UserName, 4) of
-        {_, _, _, Submissions} ->
-            [{_FirstDocId, _, _} | _] = Submissions,
+        {error, not_found} ->
             "";
+        {_, _, _, []} ->
+            "";
+        {_, _, _, Submissions} ->
+            get_beer_table_listing(Submissions);
         [] ->
             ""
     end.                                     
@@ -66,9 +72,12 @@ submissions() ->
 favorites() ->
     UserName = wf:get_path_info(),
     case be_user_server:get_favorites(wf:session(be_user_server), UserName, 4) of
-        {_, _, _, Favorites} ->
-            [{FirstDocId, _, _} | _] = Favorites,
+        {error, not_found} ->
             "";
+        {_, _, _, []} ->
+            "";
+        {_, _, _, Favorites} ->
+            get_beer_table_listing(Favorites);
         [] ->
             ""
     end.
@@ -76,6 +85,10 @@ favorites() ->
 user_comments() ->
     UserName = wf:get_path_info(),
     case be_user_server:get_comments(wf:session(be_user_server), UserName, 4) of
+        {error, not_found} ->
+            "";
+        {_, _, _, []} ->
+            "";
         {_, _, _, Comments} ->
             [{FirstDocId, _, _} | _] = Comments,            
             lists:flatmap(fun({_, _, Comment}) ->
@@ -89,6 +102,10 @@ user_comments() ->
 ratings() ->
     UserName = wf:get_path_info(),
     case be_user_server:get_ratings(wf:session(be_user_server), UserName, 4) of
+        {error, not_found} ->
+            "";
+        {_, _, _, []} ->
+            "";
         {_, _, _, Ratings} ->
             [{FirstDocId, _, _} | _] = Ratings,
             [#p{body=[
@@ -144,7 +161,6 @@ stats() ->
     [
      #h3{text="Stats"},
      #p{ body=[
-               %#strong{},
                "<strong>",
                #span{class="color_black", text=couchbeam_doc:get_value("fullname", Profile)},
                " (", couchbeam_doc:get_value("username", Profile), ") lives in ", couchbeam_doc:get_value("location", Profile)," and has been a member for ", MemberSince, "</strong>",
@@ -180,3 +196,26 @@ body() ->
     #link{text="Next", url="/web/queue/"++UserName++"?start_docid="++binary_to_list(DocId)++"&rows=2"}.
     
 event(_) -> ok.
+
+get_beer_table_listing(Beers) ->    
+    element(1, lists:mapfoldl(fun({_DocId, _Key, Doc}, Count) ->
+                                      {#panel{class=if Count rem 2 == 0 ->
+                                                            "cycle_listing";
+                                                       true ->
+                                                            "grey cycle_listing"
+                                                    end,
+                                              body=[
+                                                    #panel{class="cycle_listing_right",
+                                                           body=[
+                                                                 #h4{text=couchbeam_doc:get_value("name", Doc)},
+                                                                 #panel{class="color_grey",
+                                                                        body=[
+                                                                           "doing it"]},
+                                                                 #panel{class="right color_grey",
+                                                                        body=[ 
+                                                                               "<strong>27</strong>"]}
+                                                                ]},
+                                                    #panel{
+                                                            body=[
+                                                                  #image{style="width: 35px; height: 60px;", image="/beer_rating_big.png"}]}]}, Count+1}
+                              end, 0, Beers)).
