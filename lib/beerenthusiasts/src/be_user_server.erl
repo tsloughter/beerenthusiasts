@@ -21,7 +21,8 @@
          update_profile/3, get_profile/1, get_profile_image_url/1, add_to_queue/2,
          add_to_favorites/2, add_rating/3, get_brews/4, count_brews/1,
          get_ratings/4, count_ratings/1, count_favorites/1, count_queue/1,
-         get_favorites/4, 
+         get_favorites/4, count_number_people_with_beer_in_queue/2,
+         count_number_people_with_beer_in_favorites/2,
          get_comments/4, count_comments/1, does_user_exist/2]).
 
 %% gen_server callbacks
@@ -142,6 +143,12 @@ count_queue(Pid, UserName) ->
 
 count_queue(Pid) ->
     gen_server:call(Pid, count_queue).
+
+count_number_people_with_beer_in_queue(Pid, DocId) ->
+    gen_server:call(Pid, {count_number_people_with_beer_in_queue, DocId}).
+
+count_number_people_with_beer_in_favorites(Pid, DocId) ->
+    gen_server:call(Pid, {count_number_people_with_beer_in_favorites, DocId}).
 
 get_favorites(Pid, UserName, Rows) ->
     gen_server:call(Pid, {get_favorites, UserName, Rows}).
@@ -331,6 +338,13 @@ handle_call({count_queue, UserName}, _From, State) ->
     {reply, Count, State};
 handle_call(count_queue, _From, State) -> 
     {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "queue", [{"key", State#state.user_id}]),
+    {reply, Count, State};
+
+handle_call({count_number_people_with_beer_in_queue, DocId}, _From, State) ->
+    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "beer_in_queue", [{"key", DocId}]),
+    {reply, Count, State};
+handle_call({count_number_people_with_beer_in_favorites, DocId}, _From, State) ->
+    {ok, Count} = get_view_count(State#state.recipes_database, "recipes", "beer_in_favorites", [{"key", DocId}]),
     {reply, Count, State};
 
 handle_call({get_favorites, UserName, Rows}, _From, State) ->

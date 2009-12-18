@@ -51,7 +51,7 @@ queue() ->
         {_, _, _, []} ->
             "";
         {_, _, _, Queue} ->
-            get_beer_table_listing(Queue);
+            get_queue_table(Queue);
         [] ->
             ""
     end.
@@ -64,7 +64,7 @@ submissions() ->
         {_, _, _, []} ->
             "";
         {_, _, _, Submissions} ->
-            get_beer_table_listing(Submissions);
+            get_submissions_table(Submissions);
         [] ->
             ""
     end.                                     
@@ -77,7 +77,7 @@ favorites() ->
         {_, _, _, []} ->
             "";
         {_, _, _, Favorites} ->
-            get_beer_table_listing(Favorites);
+            get_favorites_table(Favorites);
         [] ->
             ""
     end.
@@ -197,25 +197,44 @@ body() ->
     
 event(_) -> ok.
 
-get_beer_table_listing(Beers) ->    
-    element(1, lists:mapfoldl(fun({_DocId, _Key, Doc}, Count) ->
-                                      {#panel{class=if Count rem 2 == 0 ->
-                                                            "cycle_listing";
-                                                       true ->
-                                                            "grey cycle_listing"
-                                                    end,
-                                              body=[
-                                                    #panel{class="cycle_listing_right",
-                                                           body=[
-                                                                 #h4{text=couchbeam_doc:get_value("name", Doc)},
-                                                                 #panel{class="color_grey",
-                                                                        body=[
-                                                                           "doing it"]},
-                                                                 #panel{class="right color_grey",
-                                                                        body=[ 
-                                                                               "<strong>27</strong>"]}
-                                                                ]},
-                                                    #panel{
-                                                            body=[
-                                                                  #image{style="width: 35px; height: 60px;", image="/beer_rating_big.png"}]}]}, Count+1}
+get_queue_table(Beers) ->    
+    element(1, lists:mapfoldl(fun({DocId, _Key, Doc}, Count) ->
+                                      QueueCount = be_user_server:count_number_people_with_beer_in_queue(wf:session(be_user_server), DocId),
+                                      Name = couchbeam_doc:get_value("name", Doc),
+                                      {get_beer_table_listing(Name, QueueCount, "other people have this in their Queue"), Count+1}
                               end, 0, Beers)).
+
+get_submissions_table(Beers) ->    
+    element(1, lists:mapfoldl(fun({DocId, _Key, Doc}, Count) ->
+                                      QueueCount = be_user_server:count_number_people_with_beer_in_queue(wf:session(be_user_server), DocId),
+                                      Name = couchbeam_doc:get_value("name", Doc),
+                                      {get_beer_table_listing(Name, QueueCount, "people have this in their Queue"), Count+1}
+                              end, 0, Beers)).
+
+get_favorites_table(Beers) ->    
+    element(1, lists:mapfoldl(fun({DocId, _Key, Doc}, Count) ->
+                                      FavoritesCount = be_user_server:count_number_people_with_beer_in_favorites(wf:session(be_user_server), DocId),
+                                      Name = couchbeam_doc:get_value("name", Doc),
+                                      {get_beer_table_listing(Name, FavoritesCount, "other people have this in their Favorites"), Count+1}
+                              end, 0, Beers)).
+
+get_beer_table_listing(Name, Count, Type) ->
+    #panel{class=if Count rem 2 == 0 ->
+                         "cycle_listing";
+                     true ->
+                          "grey cycle_listing"
+                 end,
+           body=[
+                 #panel{class="cycle_listing_right",
+                        body=[
+                              #h4{text=Name},
+                              #panel{class="color_grey",
+                                     body=[
+                                           "doing it"]},
+                              #panel{class="right color_grey",
+                                     body=[ 
+                                             "<strong>"++ io_lib:format("~p ", [Count]) ++"</strong>"++Type]}
+                             ]},
+                 #panel{
+                         body=[
+                               #image{style="width: 35px; height: 60px;", image="/beer_rating_big.png"}]}]}.
