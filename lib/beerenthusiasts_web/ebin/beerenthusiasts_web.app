@@ -4,8 +4,13 @@
 	{mod, {beerenthusiasts_web_app, []}},
   {modules, [beerenthusiasts_web_app, 
              web_index,
+
              web_queue,            
+             web_submissions,             
+             web_favorites,
+
              web_profile,
+
              web_comments,
              web_ratings
    ]},             

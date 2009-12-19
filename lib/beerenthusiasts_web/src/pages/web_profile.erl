@@ -50,8 +50,8 @@ queue() ->
             "";
         {_, _, _, []} ->
             "";
-        {_, _, _, Queue} ->
-            get_queue_table(Queue);
+        {_, _, _, [{FirstDocId, _, _} | _] = Queue} ->           
+            [get_queue_table(Queue), #link{text="Next", url="/web/queue/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}];
         [] ->
             ""
     end.
@@ -63,8 +63,8 @@ submissions() ->
             "";
         {_, _, _, []} ->
             "";
-        {_, _, _, Submissions} ->
-            get_submissions_table(Submissions);
+        {_, _, _, [{FirstDocId, _, _} | _] = Submissions} ->            
+            [get_submissions_table(Submissions), #link{text="Next", url="/web/submissions/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}];
         [] ->
             ""
     end.                                     
@@ -76,8 +76,8 @@ favorites() ->
             "";
         {_, _, _, []} ->
             "";
-        {_, _, _, Favorites} ->
-            get_favorites_table(Favorites);
+        {_, _, _, [{FirstDocId, _, _} | _] = Favorites} ->
+            [get_favorites_table(Favorites), #link{text="Next", url="/web/favorites/"++UserName++"?start_docid="++binary_to_list(FirstDocId)++"&rows=2"}];
         [] ->
             ""
     end.

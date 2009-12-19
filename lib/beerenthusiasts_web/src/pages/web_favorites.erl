@@ -1,4 +1,4 @@
--module (web_queue).
+-module (web_favorites).
 -include_lib ("nitrogen/include/wf.inc").
 -compile(export_all).
 
@@ -24,13 +24,13 @@ body() ->
                    R
            end,
 
-    Queue = case StartDocId of
+    Favorites = case StartDocId of
                 [] ->
-                    be_user_server:get_queue(wf:session(be_user_server), UserName, Rows);
+                    be_user_server:get_favorites(wf:session(be_user_server), UserName, Rows);
                 _ ->
-                    be_user_server:get_queue(wf:session(be_user_server), UserName, StartDocId, Rows)
+                    be_user_server:get_favorites(wf:session(be_user_server), UserName, StartDocId, Rows)
             end,
 
-    io_lib:format("~p", [Queue]).
+    io_lib:format("~p", [Favorites]).
     
 event(_) -> ok.

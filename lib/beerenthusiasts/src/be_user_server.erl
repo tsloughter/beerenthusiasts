@@ -318,7 +318,6 @@ handle_call(count_brews, _From, State) ->
 
 handle_call({get_queue, UserName, Rows}, _From, State) ->
     {ok, UserId} = get_user_id(UserName),
-    io:format ("~n~p~n", [UserId]),
     {ok, Results} = get_view_results(State#state.recipes_database, "recipes", "queue", [{"key", UserId}, {"limit", Rows}]),
     {reply, Results, State};
 handle_call({get_personal_queue, Rows}, _From, State) ->
