@@ -203,12 +203,10 @@ get_queue_table(Beers) ->
                                       Name = couchbeam_doc:get_value("name", Doc),
                                       BeerType = couchbeam_doc:get_value("style", Doc, ""),
                                       Type = if
-                                                 QueueCount == 0 ->
-                                                     "other people have this in their Queue";
-                                                 QueueCount > 1 ->
-                                                    "other people have this in their Queue";
+                                                 QueueCount == 1 ->
+                                                     "other person has this in their Queue";
                                                  true ->
-                                                     "other person has this in their Queue"
+                                                     "other people have this in their Queue"
                                              end,
                                       {get_beer_table_listing(Name, Count, BeerType, QueueCount, Type), Count+1}
                               end, 0, Beers)).
@@ -219,12 +217,10 @@ get_submissions_table(Beers) ->
                                       Name = couchbeam_doc:get_value("name", Doc),
                                       BeerType = couchbeam_doc:get_value("style", Doc, ""),
                                       Type = if
-                                                 QueueCount == 0 ->                            
-                                                     "people have this in their Queue";
-                                                 QueueCount > 1 ->  
-                                                     "people have this in their Queue";
-                                                 true ->
-                                                     "person has this in their Queue"
+                                                 QueueCount == 1 ->                            
+                                                     "person has this in their Queue";
+                                                 true ->  
+                                                     "people have this in their Queue"
                                              end,
                                       {get_beer_table_listing(Name, Count, BeerType, QueueCount, Type), Count+1}
                                  end, 0, Beers)).
