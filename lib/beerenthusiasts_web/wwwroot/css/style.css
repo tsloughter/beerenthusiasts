@@ -202,6 +202,7 @@ html,body {
     font-weight:normal;
     line-height:normal;
     height: 100%;
+    overflow-x: hidden;
 }
 
 * {
