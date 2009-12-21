@@ -181,6 +181,10 @@ h3, h4, h5 {
     color:black;
 }
 
+.container { 
+    overflow-x: hidden;
+ }
+
 a {
     color:#4183C4;
     outline-color:-moz-use-text-color;
@@ -202,7 +206,7 @@ html,body {
     font-weight:normal;
     line-height:normal;
     height: 100%;
-    overflow-x: hidden;
+
 }
 
 * {
